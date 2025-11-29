@@ -28,8 +28,7 @@ const ChatDetail = ({
       const response = await ChatProvider.getOneChat(chatId);
       setMessages(response.data);
     } catch (error) {
-      console.error("Chat ma'lumotlarini olishda xatolik:", error);
-      message.error("Chat ma'lumotlarini olishda xatolik yuz berdi");
+      message.error("Произошла ошибка при получении информации чата.");
     } finally {
       setLoading(false);
     }
@@ -80,12 +79,11 @@ const ChatDetail = ({
     setDeletingMessageId(messageId);
     try {
       await ChatProvider.deleteMessageInChat(chatId, messageId);
-      message.success("Xabar o'chirildi!");
+      message.success("Сообщение удалено!");
       // Xabarlar ro'yxatini yangilash
       setMessages(prevMessages => prevMessages.filter(msg => msg.id !== messageId));
     } catch (error) {
-      console.error("Xabarni o'chirishda xatolik:", error);
-      message.error("Xabarni o'chirishda xatolik yuz berdi");
+      message.error("Произошла ошибка при удалении сообщения.");
     } finally {
       setDeletingMessageId(null);
     }
@@ -115,7 +113,7 @@ const ChatDetail = ({
             />
             <div>
               <Typography.Title level={4} style={{ margin: 0 }}>
-                Chat ma'lumotlari
+                Информация чата
               </Typography.Title>
               <Typography.Text type="secondary" style={{ fontSize: '12px' }}>
                 {participantPhones?.[0]} va {participantPhones?.[1]}
@@ -135,12 +133,12 @@ const ChatDetail = ({
           <Typography.Text>{flagCount}</Typography.Text>
         </div> */}
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <Typography.Text strong>Holat: </Typography.Text>
+          <Typography.Text strong>Статус: </Typography.Text>
           <Typography.Text style={{ 
             color: isArchived ? '#faad14' : '#52c41a',
             fontWeight: 'bold'
           }}>
-            {isArchived ? 'Arxivlangan' : 'Faol'}
+            {isArchived ? 'Архивировано' : 'Активный'}
           </Typography.Text>
         </div>
       </div>
@@ -168,7 +166,7 @@ const ChatDetail = ({
             padding: '50px',
             color: '#999'
           }}>
-            <Typography.Text>Bu chatda xabar yo'q</Typography.Text>
+            <Typography.Text>В этом чате нет сообщений.</Typography.Text>
           </div>
         ) : (
           messages.map((message) => {
@@ -208,8 +206,8 @@ const ChatDetail = ({
                     }}
                   >
                     {isDeletedUser(message.sender_phone) 
-                      ? 'O\'chirilgan foydalanuvchi' 
-                      : (isLeft ? `Ishtirokchi 1 (${formatPhone(message.sender_phone)})` : `Ishtirokchi 2 (${formatPhone(message.sender_phone)})`)
+                      ? 'Удаленный пользователь' 
+                      : (isLeft ? `Участник 1 (${formatPhone(message.sender_phone)})` : `Участник 2 (${formatPhone(message.sender_phone)})`)
                     }
                   </Typography.Text>
                   <Typography.Text style={{ fontSize: '11px', color: '#999' }}>
@@ -245,11 +243,11 @@ const ChatDetail = ({
                     </Typography.Text>
                     
                     <Popconfirm
-                      title="Xabarni o'chirish"
-                      description="Haqiqatdan bu xabarni o'chirmoqchimisiz?"
+                      title="Удалить сообщение"
+                      description="Вы уверены, что хотите удалить это сообщение?"
                       onConfirm={() => handleDeleteMessage(message.id)}
-                      okText="Ha"
-                      cancelText="Yo'q"
+                      okText="Да"
+                      cancelText="Нет"
                       okButtonProps={{ 
                         loading: deletingMessageId === message.id,
                         danger: true 
@@ -289,7 +287,7 @@ const ChatDetail = ({
                             objectFit: 'cover'
                           }}
                           preview={{
-                            mask: 'Kattalashtirish',
+                            mask: 'Увеличить масштаб',
                             maskClassName: 'custom-image-preview-mask'
                           }}
                           fallback="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMIAAADDCAYAAADQvc6UAAABRWlDQ1BJQ0MgUHJvZmlsZQAAKJFjYGASSSwoyGFhYGDIzSspCnJ3QoiIjFJgf8LAwSDCIMogwMCcmFxc4BgQ4ANUwgCjUcG3awyMIPqyLsis7PPOq3QdDFcvjV3jOD1boQVTPQrgSkktTgbSf4A4LbmgqISBgTEFyFYuLykAsTuAbJEioKOA7DkgdjqEvQHEToKwj4DVhAQ5A9k3gGyB5IxEoBmML4BsnSQk8XQkNtReEOBxcfXxUQg1Mjc0dyHgXNJBSWpFCYh2zi+oLMpMzyhRcASGUqqCZ16yno6CkYGRAQMDKMwhqj/fAIcloxgHQqxAjIHBEugw5sUIsSQpBobtQPdLciLEVJYzMPBHMDBsayhILEqEO4DxG0txmrERhM29nYGBddr//5/DGRjYNRkY/l7////39v///y4Dmn+LgeHANwDrkl1AuO+pmgAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAwqADAAQAAAABAAAAwwAAAAD9b/HnAAAHlklEQVR4Ae3dP3Ik1RnG4W+FgYxN"
@@ -314,7 +312,7 @@ const ChatDetail = ({
                             textDecoration: 'underline'
                           }}
                         >
-                          Faylni yuklab olish
+                          Загрузить файл
                         </a>
                       )}
                     </div>

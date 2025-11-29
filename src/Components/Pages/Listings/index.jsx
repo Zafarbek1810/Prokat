@@ -8,11 +8,10 @@ import { PatternFormat } from "react-number-format";
 import { useRouter } from "next/router";
 import TableListings from "./TableListings";
 import CategoryProvider from '../../../Data/CategoryProvider';
+import ConditionProvider from '../../../Data/ConditionProvider';
 import UserProvider from '../../../Data/UserProvider';
-import { useTranslation } from "../../../hooks/useTranslation";
 
 const Listings = () => {
-  const { t } = useTranslation();
   const [modalIsOpen, setIsOpen] = useState(false);
   const [form] = Form.useForm();
   const [form2] = Form.useForm();
@@ -23,16 +22,20 @@ const Listings = () => {
     user_id: "",
   });
   const [categories, setCategories] = useState([]);
-  const [users, setUsers] = useState([]);
+  const [condition, setCondition] = useState([]);
+  // const [users, setUsers] = useState([]);
 
   useEffect(() => {
     CategoryProvider.getAllCategory().then(res => {
       setCategories(res.data.results || res.data);
     });
-    
-    UserProvider.getAllUsers('', '', 1000).then(res => {
-      setUsers(res.data.results || res.data);
+    ConditionProvider.getAllCondition().then(res => {
+      setCondition(res.data.results || res.data);
     });
+    
+    // UserProvider.getAllUsers('', 1).then(res => {
+    //   setUsers(res.data.results || res.data);
+    // });
   }, []);
 
   const closeModal = () => {
@@ -78,10 +81,10 @@ const Listings = () => {
   };
 
   const statusOptions = [
-    { label: 'Barchasi', value: '' },
-    { label: 'Kutilmoqda', value: 'pending' },
-    { label: 'Faol', value: 'active' },
-    { label: 'Rad etilgan', value: 'rejected' },
+    { label: 'Все', value: '' },
+    { label: 'Ожидает', value: 'pending' },
+    { label: 'Активный', value: 'active' },
+    { label: 'Отклонено', value: 'rejected' },
   ];
  
 
@@ -89,7 +92,7 @@ const Listings = () => {
     <>
       <div className="d-flex justify-content-between mb-3 align-items-start">
         <div className="breadcrumb" style={{ width: "20%" }}>
-          <h1>{t('titles.listings')}</h1>
+          <h1>Объявления</h1>
         </div>
         <Form
           name="basic"
@@ -103,13 +106,13 @@ const Listings = () => {
           <Row gutter={16}>
             <Col span={6}>
               <Form.Item name="query">
-                <Input placeholder={t('placeholders.search')} name="query" onChange={handleChange} />
+                <Input placeholder={"Поиск"} name="query" onChange={handleChange} />
               </Form.Item>
             </Col>
             <Col span={6}>
               <Form.Item name="category_id">
-                <Select placeholder={t('forms.select_category')} allowClear>
-                  <Select.Option value="">{t('forms.all')}</Select.Option>
+                <Select placeholder={"Выберите категорию"} allowClear>
+                  <Select.Option value="">Все</Select.Option>
                   {categories.map(cat => {
                     return(
                       <Select.Option key={cat.id} value={cat.id}>{cat.name}</Select.Option>
@@ -119,14 +122,26 @@ const Listings = () => {
               </Form.Item>
             </Col>
             <Col span={6}>
-              <Form.Item name="status">
-                <Select placeholder={t('forms.select_status')} allowClear options={statusOptions} />
+              <Form.Item name="condition_id">
+                <Select placeholder={"Выберите Состояния"} allowClear>
+                  <Select.Option value="">Все</Select.Option>
+                  {condition.map(cat => {
+                    return(
+                      <Select.Option key={cat.id} value={cat.id}>{cat.name}</Select.Option>
+                    )
+                  })}
+                </Select>
               </Form.Item>
             </Col>
             <Col span={6}>
+              <Form.Item name="status">
+                <Select placeholder={"Выберите статус"} allowClear options={statusOptions} />
+              </Form.Item>
+            </Col>
+            {/* <Col span={6}>
               <Form.Item name="user_id">
-                <Select placeholder={t('forms.select_user')} allowClear>
-                  <Select.Option value="">{t('forms.all')}</Select.Option>
+                <Select placeholder={"Выберите пользователя"} allowClear>
+                  <Select.Option value="">Все</Select.Option>
                   {users.map(user => {
                     return(
                       <Select.Option key={user.id} value={user.id}>{user.full_name}</Select.Option>
@@ -134,12 +149,12 @@ const Listings = () => {
                   })}
                 </Select>
               </Form.Item>
-            </Col>
+            </Col> */}
           </Row>
           <Row gutter={16}>
             <Col span={24} style={{ textAlign: 'right' }}>
-              <Button htmlType="button" onClick={handleReset} style={{ marginRight: 20 }}>{t('buttons.clear')}</Button>
-              <Button type="primary" htmlType="submit">{t('buttons.filter')}</Button>
+              <Button htmlType="button" onClick={handleReset} style={{ marginRight: 20 }}>Очистить</Button>
+              <Button type="primary" htmlType="submit">Фильтр</Button>
             </Col>
           </Row>
         </Form>

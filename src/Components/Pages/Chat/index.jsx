@@ -6,10 +6,8 @@ import { toast } from "react-toastify";
 import UserProvider from "../../../Data/UserProvider";
 import { PatternFormat } from "react-number-format";
 import TableChat from "./TableChat";
-import { useTranslation } from "../../../hooks/useTranslation";
 
 const Chat = () => {
-  const { t } = useTranslation();
   const [modalIsOpen, setIsOpen] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
   const [form] = Form.useForm();
@@ -136,7 +134,7 @@ const Chat = () => {
     <>
       <div className="d-flex flex-column mb-3">
         <div className="breadcrumb" style={{ width: "20%" }}>
-          <h1>{t('titles.chats')}</h1>
+          <h1>Чаты</h1>
         </div>
         <Form
           name="basic"
@@ -153,19 +151,19 @@ const Chat = () => {
             <Col span={6}>
               <Form.Item label="" name="is_archived">
                 <Select
-                  placeholder={t('forms.select_status')}
+                  placeholder={"Выберите статус"}
                   allowClear
                   onChange={(value) => setIsArchived(value)}
                 >
-                  <Select.Option value="">{t('forms.all')}</Select.Option>
-                  <Select.Option value={true}>{t('status.archived')}</Select.Option>
-                  <Select.Option value={false}>{t('status.unarchived')}</Select.Option>
+                  <Select.Option value="">Все</Select.Option>
+                  <Select.Option value={true}>Архивирован</Select.Option>
+                  <Select.Option value={false}>Не архивирован</Select.Option>
                 </Select>
               </Form.Item>
             </Col>
             <Col span={18} style={{ textAlign: 'right' }}>
-              <Button htmlType="button" onClick={handleReset} style={{ marginRight: 20 }}>{t('buttons.clear')}</Button>
-              <Button type="primary" htmlType="submit">{t('buttons.filter')}</Button>
+              <Button htmlType="button" onClick={handleReset} style={{ marginRight: 20 }}>Очистить</Button>
+              <Button type="primary" htmlType="submit">Фильтр</Button>
             </Col>
           </Row>
         </Form>

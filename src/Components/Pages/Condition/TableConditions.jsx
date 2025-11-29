@@ -8,7 +8,6 @@ import { toast } from "react-toastify";
 import { useRouter } from "next/router";
 import CategoryProvider from "../../../Data/CategoryProvider";
 import ConditionProvider from "../../../Data/ConditionProvider";
-import { useTranslation } from "../../../hooks/useTranslation";
 
 const TableCondition = ({
   modalIsOpen,
@@ -17,7 +16,6 @@ const TableCondition = ({
   setId,
   filters,
 }) => {
-  const { t } = useTranslation();
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
@@ -28,7 +26,7 @@ const TableCondition = ({
   const [clientOpenInfo, setClientOpenInfo] = useState({});
   const columns = [
     {
-      title: t('table.number'),
+      title: "№",
       key: "num",
       render: (text, item, i) => (
         <div className="no_wrap">{i + 1 + 0 * 10}</div>
@@ -40,7 +38,7 @@ const TableCondition = ({
     // },
 
     {
-      title: t('table.name'),
+      title: "Название",
       dataIndex: "id",
       render: (title, data) => (
         <div style={{ minWidth: "150px" }}>
@@ -52,13 +50,13 @@ const TableCondition = ({
     },
 
     {
-      title: t('table.actions'),
+      title: "Действия",
       dataIndex: "id",
       render: (id, data) => (
         <div style={{ minWidth: "150px", display: "flex", gap: 8 }}>
           <Popover content={(
             <div>
-              <p style={{ textAlign: 'center' }}>{t('buttons.delete')}</p>
+              <p style={{ textAlign: 'center' }}>Удалить</p>
             </div>
           )} title="">
             <Button
@@ -80,7 +78,7 @@ const TableCondition = ({
           </Popover>
           <Popover content={(
             <div>
-              <p style={{ textAlign: 'center' }}>{t('buttons.edit')}</p>
+              <p style={{ textAlign: 'center' }}>Редактировать</p>
             </div>
           )} title="">
             <Button
@@ -137,11 +135,11 @@ const TableCondition = ({
     ConditionProvider.deleteCondition(id)
       .then((res) => {
         console.log(res);
-        toast.success("Xolat o'chirildi!");
+        toast.success("Состояние удалено!");
       })
       .catch((err) => {
         console.log(err);
-        toast.error("Xatolik!");
+        toast.error("Ошибка!");
       })
       .finally(() => {
         setConfirmLoading(false);
@@ -171,26 +169,26 @@ const TableCondition = ({
 
       <ModalContextProvider modalIsOpen={isOpen} setIsOpen={setIsOpen}>
         <FormModal
-          title={t('titles.delete_condition')}
+          title={"Удалить состояние"}
           handleCancel={() => setIsOpen(false)}
           width={"450px"}
         >
           <Typography style={{ marginBottom: 20 }}>
-            {t('messages.confirm.delete_condition')}
+            Вы действительно хотите удалить?
           </Typography>
           <div style={{ display: "flex", justifyContent: "end" }}>
             <Button
               onClick={() => setIsOpen(false)}
               style={{ marginRight: 20 }}
             >
-              {t('buttons.back')}
+              Назад
             </Button>
             <Button
               type="primary"
               onClick={() => handleDeleteClients(categoryId)}
               loading={confirmLoading}
             >
-              {t('buttons.continue')}
+              Продолжить
             </Button>
           </div>
         </FormModal>
@@ -198,12 +196,12 @@ const TableCondition = ({
 
       <ModalContextProvider modalIsOpen={clientOpen} setIsOpen={setClientOpen}>
         <FormModal
-          title={t('titles.condition_info')}
+          title={"Информация о состоянии"}
           handleCancel={() => setClientOpen(false)}
           width={"750px"}
         >
           <Typography style={{ marginBottom: 20 }}>
-            {t('table.name')}: {clientOpenInfo.name}
+            Название: {clientOpenInfo.name}
           </Typography>
           <div style={{ display: "flex", justifyContent: "end" }}>
             <Button type="primary" onClick={() => setClientOpen(false)}>

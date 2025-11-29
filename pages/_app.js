@@ -7,7 +7,6 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { useLayoutEffect, useState } from 'react';
 import Head from 'next/head';
 import Script from 'next/script';
-import { appWithTranslation } from 'next-i18next';
 // import "../public/assets/css/themes/lite-purple.min.css"
 // import "../public/assets/css/plugins/perfect-scrollbar.min.css"
 import 'rsuite/dist/rsuite.min.css';
@@ -68,4 +67,4 @@ function MyApp({ Component, pageProps }) {
 }
 
 
-export default appWithTranslation(MyApp)
+export default MyApp

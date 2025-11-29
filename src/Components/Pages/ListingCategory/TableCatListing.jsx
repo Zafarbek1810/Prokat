@@ -9,7 +9,6 @@ import { toast } from "react-toastify";
 import moment from "moment";
 import { useRouter } from "next/router";
 import CategoryProvider from "../../../Data/CategoryProvider";
-import { useTranslation } from "../../../hooks/useTranslation";
 
 const TableCatListing = ({
   modalIsOpen,
@@ -18,7 +17,6 @@ const TableCatListing = ({
   setId,
   filters,
 }) => {
-  const { t } = useTranslation();
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
@@ -29,7 +27,7 @@ const TableCatListing = ({
   const [clientOpenInfo, setClientOpenInfo] = useState({});
   const columns = [
     {
-      title: t('table.number'),
+      title: "№",
       key: "num",
       render: (text, item, i) => (
         <div className="no_wrap">{i + 1 + 0 * 10}</div>
@@ -40,14 +38,14 @@ const TableCatListing = ({
     //   dataIndex: "id",
     // },
     {
-      title: t('table.icon'),
+      title: "Иконка",
       dataIndex: "icon",
       render: (icon) => (
         <img src={icon} alt="" style={{ width: "20px" }} />
       ),
     },
     {
-      title: t('table.name'),
+      title: "Название",
       dataIndex: "id",
       render: (title, data) => (
         <div style={{ minWidth: "150px" }}>
@@ -57,15 +55,25 @@ const TableCatListing = ({
         </div>
       ),
     },
-
     {
-      title: "Amallar",
+      title: "Активные объявления",
+      dataIndex: "active_count",
+      render: (active_count) => (
+        <div style={{ minWidth: "150px" }}>
+          <Typography>
+            {active_count}
+          </Typography>
+        </div>
+      ),
+    },
+    {
+      title: "Действия",
       dataIndex: "id",
       render: (id, data) => (
-        <div style={{ minWidth: "150px", display: "flex", gap: 8, justifyContent: "center" }}>
+        <div style={{ minWidth: "150px", display: "flex", gap: 8, justifyContent: "start" }}>
           <Popover content={(
             <div>
-              <p style={{ textAlign: 'center' }}>O'chirish</p>
+              <p style={{ textAlign: 'center' }}>Удалить</p>
             </div>
           )} title="">
             <Button
@@ -87,7 +95,7 @@ const TableCatListing = ({
           </Popover>
           <Popover content={(
             <div>
-              <p style={{ textAlign: 'center' }}>Taxrirlash</p>
+              <p style={{ textAlign: 'center' }}>Редактировать</p>
             </div>
           )} title="">
             <Button
@@ -178,26 +186,26 @@ const TableCatListing = ({
 
       <ModalContextProvider modalIsOpen={isOpen} setIsOpen={setIsOpen}>
         <FormModal
-          title={"Kategoriyani o'chirish"}
+          title={"Удалить категорию"}
           handleCancel={() => setIsOpen(false)}
           width={"450px"}
         >
           <Typography style={{ marginBottom: 20 }}>
-            Haqiqatdan o'chirmoqchimisiz?
+            Вы действительно хотите удалить?
           </Typography>
           <div style={{ display: "flex", justifyContent: "end" }}>
             <Button
               onClick={() => setIsOpen(false)}
               style={{ marginRight: 20 }}
             >
-              Orqaga
+              Назад
             </Button>
             <Button
               type="primary"
               onClick={() => handleDeleteClients(categoryId)}
               loading={confirmLoading}
             >
-              Davom etish
+              Продолжить
             </Button>
           </div>
         </FormModal>
@@ -205,15 +213,15 @@ const TableCatListing = ({
 
       <ModalContextProvider modalIsOpen={clientOpen} setIsOpen={setClientOpen}>
         <FormModal
-          title={"Kategoriya haqida"}
+          title={"Информация о категории"}
           handleCancel={() => setClientOpen(false)}
           width={"750px"}
         >
           <Typography style={{ marginBottom: 20 }}>
-            Nomi- {clientOpenInfo.name}
+            Название - {clientOpenInfo.name}
           </Typography>
           <Typography style={{ marginBottom: 20 }}>
-            Ikonka <br />
+            Иконка <br />
             <Image width={100} height={100} style={{ objectFit: 'contain' }} src={clientOpenInfo.icon} alt={clientOpenInfo.icon} />
           </Typography>
           <div style={{ display: "flex", justifyContent: "end" }}>

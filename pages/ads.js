@@ -2,7 +2,6 @@ import Head from "next/head";
 import WithAuthComponent from "../src/Hocs/PrivateRoute";
 import DashLayout from "../src/Components/DashLayout";
 import Listings from "../src/Components/Pages/Listings";
-import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 
 export default function Home() {
   return (
@@ -21,10 +20,4 @@ export default function Home() {
   );
 }
 
-export async function getServerSideProps({ locale }) {
-  return {
-    props: {
-      ...(await serverSideTranslations(locale, ['common'])),
-    },
-  }
-}
+// Static export: no server-side translations

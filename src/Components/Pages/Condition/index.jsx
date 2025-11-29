@@ -5,10 +5,8 @@ import { Button, Col, Form, Input, Row, Upload } from "antd";
 import { toast } from "react-toastify";
 import TableCondition from "./TableConditions";
 import ConditionProvider from "../../../Data/ConditionProvider";
-import { useTranslation } from "../../../hooks/useTranslation";
 
 const Condition = () => {
-  const { t } = useTranslation();
   const [modalIsOpen, setIsOpen] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
   const [form] = Form.useForm();
@@ -39,11 +37,11 @@ const Condition = () => {
     if (id) {
       ConditionProvider.updateCondition(id, body)
         .then((res) => {
-          toast.success(t('messages.success.condition_updated'));
+          toast.success("Состояние изменено!");
           form.resetFields();
         })
         .catch((err) => {
-          toast.warning("Xatolik");
+          toast.warning("Ошибка");
         })
         .finally(() => {
           setIsOpen(false);
@@ -55,11 +53,11 @@ const Condition = () => {
     } else {
       ConditionProvider.createCondition(body)
         .then((res) => {
-          toast.success(t('messages.success.condition_created'));
+          toast.success("Состояние добавлено!");
           form.resetFields();
         })
         .catch((err) => {
-          toast.warning("Xatolik");
+          toast.warning("Ошибка");
         })
         .finally(() => {
           setIsOpen(false);
@@ -150,7 +148,7 @@ const Condition = () => {
     <>
       <div className="d-flex justify-content-between mb-3">
         <div className="breadcrumb" style={{ width: "20%" }}>
-          <h1>{t('titles.conditions')}</h1>
+          <h1>Состояния</h1>
         </div>
         <div className="btns">
           <Button
@@ -158,7 +156,7 @@ const Condition = () => {
             htmlType="button"
             onClick={openModal}
           >
-            {t('titles.add_condition')}
+            Добавить состояние
           </Button>
         </div>
       </div>
@@ -173,7 +171,7 @@ const Condition = () => {
 
       <ModalContextProvider modalIsOpen={modalIsOpen} setIsOpen={setIsOpen}>
         <FormModal
-          title={clientInfo && clientInfo.id ? t('titles.edit_condition') : t('titles.add_condition')}
+          title={clientInfo && clientInfo.id ? "Редактировать состояние" : "Добавить состояние"}
           handleCancel={handleCancel}
           width={"600px"}
         >
@@ -191,12 +189,12 @@ const Condition = () => {
             <Row gutter={16}>
               <Col span={24}>
                 <Form.Item
-                  label="Xolat nomi"
+                  label="Название состояния"
                   name="name"
                   rules={[
                     {
                       required: true,
-                      message: "Iltimos, barcha maydonlarni to'ldiring!",
+                      message: "Пожалуйста, заполните все поля!",
                     },
                   ]}
                 >
@@ -209,14 +207,14 @@ const Condition = () => {
                   }}
                 >
                   <Button onClick={closeModal} style={{ marginRight: 20 }}>
-                    Orqaga
+                    Назад
                   </Button>
                   <Button
                     type="primary"
                     htmlType="submit"
                     loading={confirmLoading}
                   >
-                    {clientInfo?.id ? "Tahrirlash" : "Davom etish"}
+                    {clientInfo?.id ? "Сохранить" : "Продолжить"}
                   </Button>
                 </Form.Item>
               </Col>

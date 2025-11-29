@@ -1,19 +1,44 @@
-import { useTranslation as useI18nTranslation } from 'next-i18next';
-import { useRouter } from 'next/router';
+// Lightweight static translation shim: Russian only, no i18n libs
+// Import the previously defined Russian dictionary
+import React from 'react';
+import ru from '../../public/locales/ru/common.json';
 
 export const useTranslation = () => {
-  const { t, i18n } = useI18nTranslation('common');
-  const router = useRouter();
-  
-  const changeLanguage = (locale) => {
-    const { pathname, asPath, query } = router;
-    router.push({ pathname, query }, asPath, { locale });
+  // Get current language from localStorage or default to 'ru'
+  const getCurrentLanguage = () => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('language') || 'ru';
+    }
+    return 'ru';
+  };
+
+  const [currentLanguage, setCurrentLanguageState] = React.useState(getCurrentLanguage);
+
+  // Change language
+  const changeLanguage = (lang) => {
+    setCurrentLanguageState(lang);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('language', lang);
+    }
+  };
+
+  const t = (key) => {
+    // Support nested keys like "navigation.dashboard"
+    const parts = String(key).split('.');
+    let node = ru;
+    for (const part of parts) {
+      if (node && Object.prototype.hasOwnProperty.call(node, part)) {
+        node = node[part];
+      } else {
+        return key; // fallback to key if missing
+      }
+    }
+    return typeof node === 'string' ? node : key;
   };
 
   return {
     t,
+    currentLanguage,
     changeLanguage,
-    currentLanguage: i18n.language,
-    isRTL: i18n.language === 'ar'
   };
 };

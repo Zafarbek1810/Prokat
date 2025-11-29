@@ -3,11 +3,7 @@ import Table from "../../Common/Table/Table";
 import { Button, Image, Input, Popover, Typography } from "antd";
 import {
   ArchiveOutlined,
-  BlockSharp,
   DeleteOutlined,
-  EditOutlined,
-  LockOpen,
-  LockOutlined,
 } from "@mui/icons-material";
 import { ModalContextProvider } from "../../../Context/ModalContext";
 import FormModal from "../../Common/FormModal";
@@ -15,19 +11,14 @@ import ChatDetail from "./ChatDetail";
 import { toast } from "react-toastify";
 import moment from "moment";
 import { useRouter } from "next/router";
-import UserProvider from "../../../Data/UserProvider";
 import ChatProvider from "../../../Data/ChatProvider";
-import { useTranslation } from "../../../hooks/useTranslation";
+ 
 
 const TableChat = ({
   modalIsOpen,
-  setModalIsOpen,
-  setClientData,
-  setId,
   filters,
   isArchived
 }) => {
-  const { t } = useTranslation();
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [isOpen2, setIsOpen2] = useState(false);
@@ -36,10 +27,7 @@ const TableChat = ({
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState([]);
   const [userId, setUserId] = useState(null);
-  const [clientOpen, setClientOpen] = useState(false);
   const [userInfo, setUserInfo] = useState({});
-  const [reason, setReason] = useState({});
-  const [userOpenInfo, setUserOpenInfo] = useState({});
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [total, setTotal] = useState(0);
@@ -54,12 +42,17 @@ const TableChat = ({
       ),
     },
     {
-      title: t('table.participants'),
-      dataIndex: "participant_phones",
-      render: (participant_phones) => <Typography>{participant_phones[0]}, {participant_phones[1]}</Typography>,
+      title: "Телефон владельца",
+      dataIndex: "owner_phone",
+      render: (owner_phone) => <Typography>{owner_phone}</Typography>,
     },
     {
-      title: t('table.flag_count'),
+      title: "Телефон арендатора",
+      dataIndex: "renter_phone",
+      render: (renter_phone) => <Typography>{renter_phone}</Typography>,
+    },
+    {
+      title: "Количество флагов",
       dataIndex: "flag_count  ",
       render: (flag_count, data) => {
         console.log(data);
@@ -71,18 +64,18 @@ const TableChat = ({
       },
     },
     {
-      title: t('table.archived_status'),
+      title: "Архивирован?",
       dataIndex: "is_archived",
       render: (is_archived, data) => {
         return (
           <Typography>
-            {data.is_archived === true ? <span className="badge badge-warning">{t('status.archived')}</span> : <span className="badge badge-success">{t('status.unarchived')}</span>}
+            {data.is_archived === true ? <span className="badge badge-warning">Архивирован</span> : <span className="badge badge-success">Не архивирован</span>}
           </Typography>
         );
       },
     },
     {
-      title: t('table.created_date'),
+      title: "Дата создания",
       dataIndex: "created_at",
       render: (date) => (
         <div style={{ minWidth: "150px" }}>
@@ -91,7 +84,7 @@ const TableChat = ({
       ),
     },
     {
-      title: t('table.actions'),
+      title: "Действия",
       dataIndex: "id",
       render: (id, data) => (
         <div style={{ minWidth: "150px", display: "flex", gap: 8, justifyContent: "start" }}>
@@ -114,14 +107,14 @@ const TableChat = ({
                 setUserInfo(data);
               }}
             >
-              <Popover content={"Arxivlash"}>
+              <Popover content={"Архивирование"}>
                 <ArchiveOutlined style={{ fontSize: "16px" }} />
               </Popover>
             </Button>
           )}
           <Popover content={(
             <div>
-              <p style={{ textAlign: 'center' }}>O'chirish</p>
+              <p style={{ textAlign: 'center' }}>Удалить</p>
             </div>
           )} title="">
             <Button
@@ -169,11 +162,11 @@ const TableChat = ({
     ChatProvider.deleteChats(id)
       .then((res) => {
         console.log(res);
-        toast.success("Chat o'chirildi!");
+        toast.success("Чат удален!");
       })
       .catch((err) => {
         console.log(err);
-        toast.error("Xatolik!");
+        toast.error("Ошибка!");
       })
       .finally(() => {
         setConfirmLoading(false);
@@ -188,11 +181,11 @@ const TableChat = ({
     };
     ChatProvider.blockChat(id, body)
       .then((res) => {
-        toast.success("Chat arxivlandi");
+        toast.success("Чат в архиве");
       })
       .catch((err) => {
         console.log(err);
-        toast.error("Xatolik!");
+        toast.error("Ошибка!");
       })
       .finally(() => {
         setConfirmLoading(false);
@@ -230,52 +223,52 @@ const TableChat = ({
 
       <ModalContextProvider modalIsOpen={isOpen} setIsOpen={setIsOpen}>
         <FormModal
-          title={"Chatni o'chirish"}
+          title={"Удалить чат"}
           handleCancel={() => setIsOpen(false)}
           width={"450px"}
         >
           <Typography style={{ marginBottom: 20 }}>
-            Haqiqatdan o'chirmoqchimisiz?
+            Вы действительно хотите удалить?
           </Typography>
           <div style={{ display: "flex", justifyContent: "end" }}>
             <Button
               onClick={() => setIsOpen(false)}
               style={{ marginRight: 20 }}
             >
-              Orqaga
+              Назад
             </Button>
             <Button
               type="primary"
               onClick={() => handleDeleteChat(userId)}
               loading={confirmLoading}
             >
-              Davom etish
+              Продолжить
             </Button>
           </div>
         </FormModal>
       </ModalContextProvider>
       <ModalContextProvider modalIsOpen={isOpen2} setIsOpen={setIsOpen2}>
         <FormModal
-          title={'Arxivlash'}
+          title={'Архивирование'}
           handleCancel={() => setIsOpen2(false)}
           width={"450px"}
         >
           <Typography style={{ marginBottom: 20 }}>
-            {"Haqiqatdan arxivlamoqchimisiz?"}
+            {"Вы действительно хотите архивировать?"}
           </Typography>
           <div style={{ display: "flex", justifyContent: "end" }}>
             <Button
               onClick={() => setIsOpen2(false)}
               style={{ marginRight: 20 }}
             >
-              Orqaga
+              Назад
             </Button>
             <Button
               type="primary"
               onClick={() => handleBlockChat(userId)}
               loading={confirmLoading}
             >
-              Davom etish
+              Продолжить
             </Button>
           </div>
         </FormModal>

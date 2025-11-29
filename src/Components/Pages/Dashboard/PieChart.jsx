@@ -13,13 +13,21 @@ const PieChart = () => {
   }, []);
 
   useEffect(() => {
+    // Don't render chart if data is not loaded yet
+    if (!data || !data.listings) {
+      return;
+    }
+
+    let echartPie = null;
+    let handleResize = null;
+
     const initChart = async () => {
       const echartElemPie = document.getElementById("echartPie");
 
       if (echartElemPie) {
         // Dynamically import echarts only on client side
         const echarts = await import("echarts");
-        const echartPie = echarts.init(echartElemPie);
+        echartPie = echarts.init(echartElemPie);
 
         const options = {
           color: [
@@ -56,20 +64,20 @@ const PieChart = () => {
               center: ["50%", "50%"],
               data: [
                 {
-                  value: data.listings?.total,
-                  name: "Umumiy",
+                  value: data.listings?.total || 0,
+                  name: "Общий",
                 },
                 {
-                  value: data.listings?.new,
-                  name: "Yangi",
+                  value: data.listings?.new || 0,
+                  name: "Новый",
                 },
                 {
-                  value: data.listings?.active,
-                  name: "Aktiv",
+                  value: data.listings?.active || 0,
+                  name: "Актив",
                 },
                 {
-                  value: data.listings?.pending,
-                  name: "Kutilmoqda",
+                  value: data.listings?.pending || 0,
+                  name: "Ожидающий",
                 },
               ],
               itemStyle: {
@@ -89,24 +97,31 @@ const PieChart = () => {
 
         echartPie.setOption(options);
 
-        const handleResize = () => {
+        handleResize = () => {
           setTimeout(() => {
-            echartPie.resize();
+            if (echartPie) {
+              echartPie.resize();
+            }
           }, 500);
         };
 
         window.addEventListener("resize", handleResize);
-
-        // Cleanup function
-        return () => {
-          window.removeEventListener("resize", handleResize);
-          echartPie.dispose();
-        };
       }
     };
 
     initChart();
-  }, [forRender]);
+
+    // Cleanup function
+    return () => {
+      if (handleResize) {
+        window.removeEventListener("resize", handleResize);
+      }
+      if (echartPie) {
+        echartPie.dispose();
+        echartPie = null;
+      }
+    };
+  }, [forRender, data]);
 
   return <div id="echartPie" style={{ width: "100%", height: "400px" }} />;
 };

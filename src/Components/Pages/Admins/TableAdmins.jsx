@@ -12,7 +12,6 @@ import { toast } from "react-toastify";
 import moment from "moment";
 import { useRouter } from "next/router";
 import AdminProvider from "../../../Data/AdminProvider";
-import { useTranslation } from "../../../hooks/useTranslation";
 
 const TableAdmins = ({
   modalIsOpen,
@@ -21,7 +20,6 @@ const TableAdmins = ({
   setId,
   filters,
 }) => {
-  const { t } = useTranslation();
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
@@ -38,7 +36,7 @@ const TableAdmins = ({
 
   const columns = [
     {
-      title: t('table.number'),
+      title: "№",
       key: "num",
       render: (text, item, i) => (
         <div className="no_wrap">{i + 1 + (page - 1) * pageSize}</div>
@@ -50,36 +48,36 @@ const TableAdmins = ({
       render: (username) => <Typography>{username}</Typography>,
     },
     {
-      title: t('table.full_name'),
+      title: "Полное имя",
       dataIndex: "full_name",
       render: (full_name) => (
-        <Typography>{full_name || t('status.not_entered')}</Typography>
+        <Typography>{full_name || "Не указано"}</Typography>
       ),
     },
     {
       title: "Email",
       dataIndex: "email",
       render: (email) => (
-        <Typography>{email || t('status.not_entered')}</Typography>
+        <Typography>{email || 'Не указано'}</Typography>
       ),
     },
     {
-      title: t('table.status'),
+      title: "Статус",
       dataIndex: "is_active",
       render: (is_active) => {
         return (
           <Typography>
             {is_active === true ? (
-              <span className="badge badge-success">{t('status.active')}</span>
+              <span className="badge badge-success">Активный</span>
             ) : (
-              <span className="badge badge-danger">{t('status.inactive')}</span>
+              <span className="badge badge-danger">Неактивный</span>
             )}
           </Typography>
         );
       },
     },
     {
-      title: t('table.created_date'),
+      title: "Дата создания",
       dataIndex: "date_joined",
       render: (date) => (
         <div style={{ minWidth: "150px" }}>
@@ -90,7 +88,7 @@ const TableAdmins = ({
       ),
     },
     {
-      title: t('table.actions'),
+      title: "Действия",
       dataIndex: "id",
       render: (id, data) => (
         <div
@@ -101,7 +99,7 @@ const TableAdmins = ({
             justifyContent: "center",
           }}
         >
-          <Popover content={t('buttons.edit')}>
+          <Popover content={"Редактировать"}>
             <Button
               type="primary"
               size="small"
@@ -122,7 +120,7 @@ const TableAdmins = ({
             </Button>
           </Popover>
 
-          <Popover content={t('buttons.delete')}>
+          <Popover content={"Удалить"}>
             <Button
               type="primary"
               size="small"
@@ -168,11 +166,11 @@ const TableAdmins = ({
     AdminProvider.deteleAdmin(id)
       .then((res) => {
         console.log(res);
-        toast.success(t('messages.success.admin_deleted'));
+        toast.success("Администратор удален!");
       })
       .catch((err) => {
         console.log(err);
-        toast.error(t('messages.error.general'));
+        toast.error("Ошибка");
       })
       .finally(() => {
         setConfirmLoading(false);
@@ -222,26 +220,26 @@ const TableAdmins = ({
 
       <ModalContextProvider modalIsOpen={isOpen} setIsOpen={setIsOpen}>
         <FormModal
-          title={t('titles.delete_admin')}
+          title={"Удалить администратора"}
           handleCancel={() => setIsOpen(false)}
           width={"450px"}
         >
           <Typography style={{ marginBottom: 20 }}>
-            {t('messages.confirm.delete_admin')}
+            Вы действительно хотите удалить?
           </Typography>
           <div style={{ display: "flex", justifyContent: "end" }}>
             <Button
               onClick={() => setIsOpen(false)}
               style={{ marginRight: 20 }}
             >
-              {t('buttons.back')}
+              Назад
             </Button>
             <Button
               type="primary"
               onClick={() => handleDeleteAdmin(adminId)}
               loading={confirmLoading}
             >
-              {t('buttons.continue')}
+              Продолжить
             </Button>
           </div>
         </FormModal>
@@ -249,7 +247,7 @@ const TableAdmins = ({
 
       <ModalContextProvider modalIsOpen={adminOpen} setIsOpen={setAdminOpen}>
         <FormModal
-          title={"Admin haqida"}
+          title={"Информация об администраторе"}
           handleCancel={() => setAdminOpen(false)}
           width={"750px"}
         >
@@ -267,7 +265,7 @@ const TableAdmins = ({
             <>
               <div style={{ marginBottom: 16 }}>
                 <Typography style={{ fontWeight: 600, marginBottom: 8 }}>
-                  Asosiy ma'lumotlar:
+                  Основная информация:
                 </Typography>
                 <Typography style={{ marginBottom: 8 }}>
                   <strong>ID:</strong> {adminDetails?.id || adminOpenInfo.id}
@@ -277,15 +275,15 @@ const TableAdmins = ({
                   {adminDetails?.username || adminOpenInfo.username}
                 </Typography>
                 <Typography style={{ marginBottom: 8 }}>
-                  <strong>To'liq ism:</strong>{" "}
-                  {adminDetails?.full_name || adminOpenInfo.full_name || "Kiritilmagan"}
+                  <strong>Полное имя:</strong>{" "}
+                  {adminDetails?.full_name || adminOpenInfo.full_name || "Не указано"}
                 </Typography>
                 <Typography style={{ marginBottom: 8 }}>
                   <strong>Email:</strong>{" "}
-                  {adminDetails?.email || adminOpenInfo.email || "Kiritilmagan"}
+                  {adminDetails?.email || adminOpenInfo.email || "Не указано"}
                 </Typography>
                 <Typography style={{ marginBottom: 8 }}>
-                  <strong>Ro'yxatdan o'tgan sana:</strong>{" "}
+                  <strong>Дата регистрации:</strong>{" "}
                   {adminDetails?.date_joined
                     ? moment(new Date(adminDetails.date_joined)).format(
                       "DD.MM.YYYY HH:mm"
@@ -294,7 +292,7 @@ const TableAdmins = ({
                       ? moment(new Date(adminOpenInfo.date_joined)).format(
                         "DD.MM.YYYY HH:mm"
                       )
-                      : "Ma'lum emas"}
+                      : "Неизвестно"}
                 </Typography>
               </div>
             </>

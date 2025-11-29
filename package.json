@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
-    "export": "set EXPORT_MODE=true && next build && next export",
+    "build": "next build && next export",
+    "export": "set EXPORT_MODE=true && next build",
     "start": "next start",
     "lint": "next lint"
   },

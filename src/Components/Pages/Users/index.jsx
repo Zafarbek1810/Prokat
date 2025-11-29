@@ -6,10 +6,8 @@ import { toast } from "react-toastify";
 import TableUsers from "./TableUsers";
 import UserProvider from "../../../Data/UserProvider";
 import { PatternFormat } from "react-number-format";
-import { useTranslation } from "../../../hooks/useTranslation";
 
 const Users = () => {
-  const { t } = useTranslation();
   const [modalIsOpen, setIsOpen] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
   const [form] = Form.useForm();
@@ -37,12 +35,12 @@ const Users = () => {
     if (id) {
       UserProvider.updateUser(id, { ...values })
         .then((res) => {
-          toast.success(t('messages.success.user_updated'));
+          toast.success("Пользователь отредактирован!");
           form.resetFields();
         })
         .catch((err) => {
           console.log(err);
-          toast.warning(t('messages.error.general'));
+          toast.warning("Ошибка");
         })
         .finally(() => {
           setIsOpen(false);
@@ -53,12 +51,12 @@ const Users = () => {
       await UserProvider.createUser(body)
         .then((res) => {
           console.log(res);
-          toast.success(t('messages.success.user_created'));
+          toast.success("Пользователь добавлен!");
           form.resetFields();
         })
         .catch((err) => {
           console.log(err);
-          toast.warning(t('messages.error.general'));
+          toast.warning("Ошибка");
         })
         .finally(() => {
           setIsOpen(false);
@@ -143,7 +141,7 @@ const Users = () => {
     <>
       <div className="d-flex flex-column mb-3">
         <div className="breadcrumb" style={{ width: "20%" }}>
-          <h1>{t('titles.users')}</h1>
+          <h1>Пользователи</h1>
         </div>
         <Form
           name="basic"
@@ -160,39 +158,39 @@ const Users = () => {
             <Col span={6}>
               <Form.Item label="" name="is_blocked">
                 <Select
-                  placeholder={t('forms.select_status')}
+                  placeholder={"Выберите статус"}
                   allowClear
                   onChange={(value) => setIsBlocked(value)}
                 >
-                  <Select.Option value="">{t('forms.all')}</Select.Option>
-                  <Select.Option value={true}>{t('status.blocked')}</Select.Option>
-                  <Select.Option value={false}>{t('status.unblocked')}</Select.Option>
+                  <Select.Option value="">Все</Select.Option>
+                  <Select.Option value={true}>Заблокирован</Select.Option>
+                  <Select.Option value={false}>Не заблокирован</Select.Option>
                 </Select>
               </Form.Item>
             </Col>
             <Col span={6}>
               <Form.Item name="phone_number">
-                <Input placeholder={t('placeholders.phone_number')} />
+                <Input placeholder={"Номер телефона"} />
               </Form.Item>
             </Col>
             <Col span={6}>
               <Form.Item name="full_name">
-                <Input placeholder={t('placeholders.full_name')} />
+                <Input placeholder={"Полное имя"} />
               </Form.Item>
             </Col>
             <Col span={6}>
               <Form.Item name="listings_count">
-                <Input placeholder={t('placeholders.listings_count')} type="number" />
+                <Input placeholder={"Количество объявлений"} type="number" />
               </Form.Item>
             </Col>
             <Col span={6}>
               <Form.Item name="address">
-                <Input placeholder={t('placeholders.address')} />
+                <Input placeholder={"Адрес"} />
               </Form.Item>
             </Col>
             <Col span={18} style={{ textAlign: 'right' }}>
-              <Button htmlType="button" onClick={handleReset} style={{ marginRight: 20 }}>{t('buttons.clear')}</Button>
-              <Button type="primary" htmlType="submit">{t('buttons.filter')}</Button>
+              <Button htmlType="button" onClick={handleReset} style={{ marginRight: 20 }}>Очистить</Button>
+              <Button type="primary" htmlType="submit">Фильтр</Button>
             </Col>
           </Row>
         </Form>
@@ -209,10 +207,10 @@ const Users = () => {
 
       <ModalContextProvider modalIsOpen={modalIsOpen} setIsOpen={setIsOpen}>
         <FormModal
-          title={
+            title={
             clientInfo?.id
-              ? t('titles.edit_user')
-              : t('titles.add_user')
+              ? "Редактировать пользователя"
+              : "Добавить пользователя"
           }
           handleCancel={handleCancel}
           width={"500px"}
@@ -232,12 +230,12 @@ const Users = () => {
             <Row gutter={16}>
               <Col span={24}>
                 <Form.Item
-                  label={t('forms.phone_number')}
+                  label={"Номер телефона"}
                   name="phone_number"
                   rules={[
                     {
                       required: true,
-                      message: t('validation.required'),
+                      message: "Пожалуйста, заполните поле",
                     },
                   ]}
                 >
@@ -252,12 +250,12 @@ const Users = () => {
                     onChange={(e) => setPhone_number(e.target.value)}
                   />
                 </Form.Item>
-                <Form.Item label={t('forms.user_status')} name="is_blocked">
+                <Form.Item label={"Статус пользователя"} name="is_blocked">
                   <Radio.Group
                     block
                     options={[
-                      { label: t('status.blocked'), value: true },
-                      { label: t('status.unblocked'), value: false },
+                      { label: "Заблокирован", value: true },
+                      { label: "Не заблокирован", value: false },
                     ]}
                     optionType="button"
                     buttonStyle="solid"
@@ -272,14 +270,14 @@ const Users = () => {
                   }}
                 >
                   <Button onClick={closeModal} style={{ marginRight: 20 }}>
-                    {t('buttons.back')}
+                    Назад
                   </Button>
                   <Button
                     type="primary"
                     htmlType="submit"
                     loading={confirmLoading}
                   >
-                    {clientInfo?.id ? t('buttons.edit') : t('buttons.add')}
+                    {clientInfo?.id ? "Редактировать" : "Добавить"}
                   </Button>
                 </Form.Item>
               </Col>

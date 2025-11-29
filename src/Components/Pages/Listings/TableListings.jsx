@@ -8,7 +8,6 @@ import { toast } from "react-toastify";
 import moment from "moment";
 import { useRouter } from "next/router";
 import ListingProvider from "../../../Data/ListingProvider";
-import { useTranslation } from "../../../hooks/useTranslation";
 
 const TableListings = ({
   modalIsOpen,
@@ -17,7 +16,6 @@ const TableListings = ({
   setId,
   filters,
 }) => {
-  const { t } = useTranslation();
   const router = useRouter();
   const [form] = Form.useForm();
   const [isOpen, setIsOpen] = useState(false);
@@ -36,14 +34,14 @@ const TableListings = ({
   const pageSize = 20;
   const columns = [
     {
-      title: t('table.number'),
+      title: "№",
       key: "num",
       render: (text, item, i) => (
         <div className="no_wrap">{(page - 1) * pageSize + i + 1}</div>
       ),
     },
     {
-      title: t('table.title'),
+      title: "Заголовок",
       dataIndex: "title",
       render: (title) => (
         <div style={{ minWidth: "150px" }}>
@@ -52,7 +50,16 @@ const TableListings = ({
       ),
     },
     {
-      title: t('table.owner'),
+      title: "Категория",
+      dataIndex: "category_name",
+      render: (title) => (
+        <div style={{ minWidth: "150px" }}>
+          <Typography>{title}</Typography>
+        </div>
+      ),
+    },
+    {
+      title: "Владелец объявления",
       dataIndex: "owner_full_name",
       render: (owner_full_name) => (
         <div style={{ minWidth: "150px" }}>
@@ -61,26 +68,35 @@ const TableListings = ({
       ),
     },
     {
-      title: t('table.status'),
+      title: "Телефон владельца",
+      dataIndex: "owner_phone",
+      render: (owner_phone) => (
+        <div style={{ minWidth: "150px" }}>
+          <Typography>{owner_phone}</Typography>
+        </div>
+      ),
+    },
+    {
+      title: "Статус",
       dataIndex: "status",
       render: (status) => (
         <div style={{ minWidth: "150px", display: "flex", justifyContent: "start" }}>
           {status === 'pending' && (
             <span className="badge badge-warning">
               <span className="badge-dot"></span>
-              {t('status.pending')}
+              {"Ожидает"}
             </span>
           )}
           {status === 'active' && (
             <span className="badge badge-success">
               <span className="badge-dot"></span>
-              {t('status.active')}
+              {"Активный"}
             </span>
           )}
           {status === 'rejected' && (
             <span className="badge badge-danger">
               <span className="badge-dot"></span>
-              {t('status.rejected')}
+              {"Отклонено"}
             </span>
           )}
           {!['pending', 'active', 'rejected'].includes(status) && (
@@ -93,7 +109,7 @@ const TableListings = ({
       ),
     },
     {
-      title: t('table.created_date'),
+      title: "Дата создания",
       dataIndex: "created_at",
       render: (date) => (
         <div style={{ minWidth: "150px" }}>
@@ -103,13 +119,13 @@ const TableListings = ({
     },
     // },
     {
-      title: t('table.actions'),
+      title: "Действия",
       dataIndex: "id",
       render: (id, data) => (
         <div style={{ minWidth: "150px", display: "flex", gap: 8, justifyContent: "center" }}>
           <Popover content={(
             <div>
-              <p style={{ textAlign: 'center' }}>{t('buttons.activate')}</p>
+              <p style={{ textAlign: 'center' }}>Активировать</p>
             </div>
           )} title="">
             <Button
@@ -133,7 +149,7 @@ const TableListings = ({
           </Popover>
           <Popover content={(
             <div>
-              <p style={{ textAlign: 'center' }}>{t('buttons.reject')}</p>
+              <p style={{ textAlign: 'center' }}>Отклонить</p>
             </div>
           )} title="">
             <Button
@@ -157,7 +173,7 @@ const TableListings = ({
           </Popover>
           <Popover content={(
             <div>
-              <p style={{ textAlign: 'center' }}>O'chirish</p>
+              <p style={{ textAlign: 'center' }}>Удалить</p>
             </div>
           )} title="">
             <Button
@@ -216,7 +232,7 @@ const TableListings = ({
     ListingProvider.deteleListing(id)
       .then((res) => {
         console.log(res);
-        toast.success(t('messages.success.listing_deleted'));
+        toast.success("Объявление удалено!");
       })
       .catch((err) => {
         console.log(err);
@@ -232,7 +248,7 @@ const TableListings = ({
     ListingProvider.approveListing(id, listingData)
       .then((res) => {
         console.log(res);
-        toast.success(t('messages.success.listing_approved'));
+        toast.success("Объявление одобрено");
       })
       .catch((err) => {
         console.log(err);
@@ -248,14 +264,14 @@ const TableListings = ({
     ListingProvider.rejectListing(id, { ...listingData, reason: formValues?.reason || reason })
       .then((res) => {
         console.log(res);
-        toast.success(t('messages.success.listing_rejected'));
+        toast.success("Объявление отклонено");
         setIsOpen3(false);
         form.resetFields();
         setReason('');
       })
       .catch((err) => {
         console.log(err);
-        toast.error("Xatolik");
+        toast.error("Ошибка");
       })
       .finally(() => {
         setConfirmLoading(false);
@@ -294,11 +310,9 @@ const TableListings = ({
               // getOneListing API dan foydalanish
               ListingProvider.getOneListing(record.id)
                 .then((res) => {
-                  console.log("getOneListing response:", res.data);
                   setListingOpenInfo(res.data);
                 })
                 .catch((err) => {
-                  console.error("getOneListing error:", err);
                   if (err.response?.status == 401) {
                     router.push("/login");
                   }
@@ -313,12 +327,12 @@ const TableListings = ({
 
       <ModalContextProvider modalIsOpen={isOpen} setIsOpen={setIsOpen}>
         <FormModal
-          title={"E'lon o'chirish"}
+          title={"Удалить объявление"}
           handleCancel={() => setIsOpen(false)}
           width={"450px"}
         >
           <Typography style={{ marginBottom: 20 }}>
-            Haqiqatdan o'chirishni xoxlaysizmi?
+            Вы действительно хотите удалить?
           </Typography>
 
           <div style={{ display: "flex", justifyContent: "end" }}>
@@ -326,47 +340,47 @@ const TableListings = ({
               onClick={() => setIsOpen(false)}
               style={{ marginRight: 20 }}
             >
-              Orqaga
+              Назад
             </Button>
             <Button
               type="primary"
               onClick={() => handleDeleteClients(listingId)}
               loading={confirmLoading}
             >
-              Davom etish
+              Продолжить
             </Button>
           </div>
         </FormModal>
       </ModalContextProvider>
       <ModalContextProvider modalIsOpen={isOpen2} setIsOpen={setIsOpen2}>
         <FormModal
-          title={"E'lonni faollashtirish"}
+          title={"Активировать объявление"}
           handleCancel={() => setIsOpen2(false)}
           width={"450px"}
         >
           <Typography style={{ marginBottom: 20 }}>
-            Haqiqatdan e'lon faollashtirilsinmi?
+            Вы действительно хотите активировать объявление?
           </Typography>
           <div style={{ display: "flex", justifyContent: "end" }}>
             <Button
               onClick={() => setIsOpen2(false)}
               style={{ marginRight: 20 }}
             >
-              Orqaga
+              Назад
             </Button>
             <Button
               type="primary"
               onClick={() => handleApprovedListing(listingId, listingData)}
               loading={confirmLoading}
             >
-              Davom etish
+              Продолжить
             </Button>
           </div>
         </FormModal>
       </ModalContextProvider>
       <ModalContextProvider modalIsOpen={isOpen3} setIsOpen={setIsOpen3}>
         <FormModal
-          title={"E'lonni rad qilish"}
+          title={"Отклонить объявление"}
           handleCancel={() => {
             setIsOpen3(false);
             form.resetFields();
@@ -380,20 +394,20 @@ const TableListings = ({
             layout="vertical"
           >
             <Typography style={{ marginBottom: 20 }}>
-              Haqiqatdan rad qilinsinmi?
+              Вы действительно хотите отклонить?
             </Typography>
             <Form.Item
-              label="Nima sababdan"
+              label="Причина"
               name="reason"
               rules={[
                 {
                   required: true,
-                  message: "Iltimos, sababni kiriting!",
+                  message: "Пожалуйста, укажите причину!",
                 },
               ]}
             >
               <Input 
-                placeholder="Sababi"
+                placeholder="Причина"
                 value={reason}
                 onChange={handleChange} 
               />
@@ -407,14 +421,14 @@ const TableListings = ({
                 }}
                 style={{ marginRight: 20 }}
               >
-                Orqaga
+                Назад
               </Button>
               <Button
                 type="primary"
                 htmlType="submit"
                 loading={confirmLoading}
               >
-                Davom etish
+                Продолжить
               </Button>
             </div>
           </Form>
@@ -423,41 +437,41 @@ const TableListings = ({
 
       <ModalContextProvider modalIsOpen={listingOpen} setIsOpen={setListingOpen}>
         <FormModal
-          title={"E'lon haqida"}
+          title={"Информация об объявлении"}
           handleCancel={() => setListingOpen(false)}
           width={"750px"}
         >
           {loading ? (
             <div style={{ textAlign: 'center', padding: '40px' }}>
-              <Typography>Ma'lumotlar yuklanmoqda...</Typography>
+              <Typography>Данные загружаются...</Typography>
             </div>
           ) : (
             <>
               <Typography style={{ marginBottom: 20 }}>
-                E'lon nomi - {listingOpenInfo.title}
+                Название объявления - {listingOpenInfo.title}
               </Typography>
               <Typography style={{ marginBottom: 20 }}>
-                E'lon haqida - {listingOpenInfo.description}
+                Описание объявления - {listingOpenInfo.description}
               </Typography>
               <Typography style={{ marginBottom: 20 }}>
-                E'lon egasi raqami - {listingOpenInfo.owner_phone}
+                Номер владельца - {listingOpenInfo.owner_phone}
               </Typography>
               <Typography style={{ marginBottom: 20 }}>
-                Narxlar(Soatlik/Kunlik/Oylik) - {listingOpenInfo.price_per_hour}/{listingOpenInfo.price_per_day}/{listingOpenInfo.price_per_month}
+                Цены (Почасово/Посуточно/Помесечно) - {listingOpenInfo.price_per_hour}/{listingOpenInfo.price_per_day}/{listingOpenInfo.price_per_month}
               </Typography>
               <Typography style={{ marginBottom: 20 }}>
-                E'lon kategoriyasi - {listingOpenInfo.category_name}
+                Категория объявления - {listingOpenInfo.category_name}
               </Typography>
               <Typography style={{ marginBottom: 20 }}>
-                Yaratilgan sana -{" "}
+                Дата создания -{" "}
                 {moment(new Date(listingOpenInfo.created_at)).format("DD.MM.YYYY")}
               </Typography>
               <Typography style={{ marginBottom: 20 }}>
-                Ko'rilganlar soni - {listingOpenInfo.views_count}
+                Количество просмотров - {listingOpenInfo.views_count}
               </Typography>
 
               <Typography style={{ marginBottom: 20 }}>
-                Rasmlar <br /> {listingOpenInfo?.photos?.map((item, index)=>(
+                Фотографии <br /> {listingOpenInfo?.photos?.map((item, index)=>(
                   <Image width={100} height={100} style={{objectFit:'contain'}} src={item.url} alt={item.id}/>
                 ))}
               </Typography>
@@ -466,7 +480,7 @@ const TableListings = ({
 
           <div style={{ display: "flex", justifyContent: "end" }}>
             <Button type="primary" onClick={() => setListingOpen(false)}>
-              Ok
+              ОК
             </Button>
           </div>
         </FormModal>

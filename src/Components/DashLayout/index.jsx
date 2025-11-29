@@ -10,8 +10,8 @@ import MyLink from "../Common/MyLink";
 import { Modal, Collapse } from "antd";
 import styled from "styled-components";
 import AuthProvider from "../../Data/AuthProvider";
-import LanguageSwitcher from "../Common/LanguageSwitcher";
-import { useTranslation } from "../../hooks/useTranslation";
+import ListingProvider from "../../Data/ListingProvider";
+// LanguageSwitcher and i18n removed for static export
 
 const { Panel } = Collapse;
 
@@ -71,7 +71,7 @@ const Style = styled.div`
 `;
 
 const DashLayout = ({ children }) => {
-  const { t } = useTranslation();
+  // Static Russian texts
   const logoutContext = useContextSelector(
     UserContext,
     (ctx) => ctx.actions.logout
@@ -80,6 +80,7 @@ const DashLayout = ({ children }) => {
   const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [me, setMe] = useState({});
+  const [activeAdsCount, setActiveAdsCount] = useState(0);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -91,6 +92,23 @@ const DashLayout = ({ children }) => {
     AuthProvider.getMe()
       .then((res) => {
         setMe(res.data)
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }, []);
+
+  useEffect(() => {
+    // Fetch count of active listings for the sidebar badge
+    ListingProvider.getAllListing('', 'pending', 1, '', '')
+      .then((res) => {
+        const data = res?.data;
+        const count = (typeof data?.count === 'number' && data.count)
+          || (typeof data?.total === 'number' && data.total)
+          || (Array.isArray(data?.results) && data.results.length)
+          || (Array.isArray(data) && data.length)
+          || 0;
+        setActiveAdsCount(count);
       })
       .catch((err) => {
         console.log(err);
@@ -145,22 +163,32 @@ const DashLayout = ({ children }) => {
 
   const links = [
     {
-      name: t('navigation.dashboard'),
+      name: 'Панель',
       path: "/dashboard",
       icon: <i class="i-Bar-Chart text-20 mr-2 text-muted"></i>,
     },
-     {
-      name: t('navigation.admins'),
+    {
+      name: 'Администраторы',
       path: "/admins",
       icon: <i className="i-Administrator text-20 mr-2 text-muted"></i>,
     },
     {
-      name: t('navigation.listings'),
+      name: 'Объявления',
       path: "/ads",
       icon: <i class="nav-icon i-Letter-Open"></i>,
     },
     {
-      name: t('navigation.categories'),
+      name: 'Арендовано',
+      path: "/booking",
+      icon: <i class="nav-icon i-Letter-Open"></i>,
+    },
+    {
+      name: 'Отчет',
+      path: "/report",
+      icon: <i className="i-Monitor-Analytics text-20 mr-2 text-muted"></i>,
+    },
+    {
+      name: 'Категории',
       path: "/listing-category",
       icon: <i className="i-Library text-20 mr-2 text-muted"></i>,
     },
@@ -186,17 +214,17 @@ const DashLayout = ({ children }) => {
     //   icon: <i className="i-Library text-20 mr-2 text-muted"></i>,
     // },
     {
-      name: t('navigation.conditions'),
+      name: 'Состояния',
       path: "/conditions",
       icon: <i className="i-Receipt-4 text-20 mr-2 text-muted"></i>,
     },
     {
-      name: t('navigation.users'),
+      name: 'Пользователи',
       path: "/users",
       icon: <i className="i-Administrator text-20 mr-2 text-muted"></i>,
     },
     {
-      name: t('navigation.chats'),
+      name: 'Чаты',
       path: "/chat",
       icon: <i className="i-Speach-Bubble-3 text-20 mr-2 text-muted"></i>,
     },
@@ -208,7 +236,7 @@ const DashLayout = ({ children }) => {
         <div className="sidebar-panel bg-white">
           <div className="gull-brand pr-3 text-center mt-4 mb-2 d-flex  align-items-center justify-content-center">
             {/* <img className="mb-3" src="/images/logo1.png" alt="alt" /> */}
-            <img style={{width:'100px'}} src="/icons/logo.svg" alt="" />
+            <img style={{ width: '100px' }} src="/icons/logo.svg" alt="" />
           </div>
           <div className="scroll-nav ps ps--active-y">
             <div className="side-nav">
@@ -231,11 +259,10 @@ const DashLayout = ({ children }) => {
                           >
                             {link.children.map((child, childIndex) => (
                               <li
-                                className={`Ul_li--hover ${
-                                  child.path === router.pathname
+                                className={`Ul_li--hover ${child.path === router.pathname
                                     ? "li-active"
                                     : ""
-                                }`}
+                                  }`}
                                 key={childIndex}
                               >
                                 <MyLink to={child.path}>
@@ -252,9 +279,8 @@ const DashLayout = ({ children }) => {
                     } else {
                       return (
                         <li
-                          className={`Ul_li--hover ${
-                            link.path === router.pathname ? "li-active" : ""
-                          }`}
+                          className={`Ul_li--hover ${link.path === router.pathname ? "li-active" : ""
+                            }`}
                           key={index}
                         >
                           <MyLink to={link.path}>
@@ -262,6 +288,14 @@ const DashLayout = ({ children }) => {
                             <span className="item-name text-15 text-muted">
                               {link.name}
                             </span>
+                            {link.path === "/ads" && (
+                              <span
+                                className="badge badge-success ml-2"
+                                style={{ borderRadius: 12 }}
+                              >
+                                {activeAdsCount}
+                              </span>
+                            )}
                           </MyLink>
                         </li>
                       );
@@ -272,7 +306,7 @@ const DashLayout = ({ children }) => {
             </div>
           </div>
         </div>
-        <div className="switch-overlay"></div>
+        <div className="switch-overlay" style={{ pointerEvents: 'none' }}></div>
         <div className="main-content-wrap mobile-menu-content bg-off-white m-0">
           <header className="main-header bg-white d-flex justify-content-between p-2">
             <div className="header-toggle" onClick={(e) => changeHeadToggle(e)}>
@@ -284,7 +318,7 @@ const DashLayout = ({ children }) => {
             </div>
             <div className="header-part-right d-flex align-items-center gap-3">
               <h3>{me.username}</h3>
-              <LanguageSwitcher />
+              {/* Language switcher removed */}
               <button
                 className="btn btn-outline"
                 type="button"
@@ -294,7 +328,7 @@ const DashLayout = ({ children }) => {
               </button>
             </div>
           </header>
-          <div className="sidebar-overlay open"></div>
+          <div className="sidebar-overlay" style={{ pointerEvents: 'none' }}></div>
           <div className="main-content pt-4">{children}</div>
 
           <div className="flex-grow-1"></div>
@@ -302,28 +336,28 @@ const DashLayout = ({ children }) => {
       </div>
 
       <Modal
-        title={t('navigation.logout')}
+        title={'Выйти из системы'}
         width={450}
         centered
         open={isOpen}
         onCancel={() => setIsOpen(false)}
         footer={null}
       >
-        <p>{t('messages.confirm.logout')}</p>
+        <p>{'Вы действительно хотите выйти из системы?'}</p>
         <div className="modal-footer">
           <button
             className="btn btn-secondary"
             type="button"
             onClick={() => setIsOpen(false)}
           >
-            {t('buttons.back')}
+            {'Назад'}
           </button>
           <button
             className="btn btn-primary ml-2"
             onClick={handleLogout}
             type="button"
           >
-            {t('navigation.logout')}
+            {'Выйти'}
           </button>
         </div>
       </Modal>

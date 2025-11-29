@@ -5,10 +5,8 @@ import { Button, Col, Form, Input, Radio, Row, Upload } from "antd";
 import { toast } from "react-toastify";
 import TableAdmins from "./TableAdmins";
 import AdminProvider from "../../../Data/AdminProvider";
-import { useTranslation } from "../../../hooks/useTranslation";
 
 const Admins = () => {
-  const { t } = useTranslation();
   const [modalIsOpen, setIsOpen] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
   const [form] = Form.useForm();
@@ -24,7 +22,7 @@ const Admins = () => {
   const handleAddAdmin = async (values) => {
     setConfirmLoading(true);
     console.log(values);
-    
+
     if (id) {
       // Admin tahrirlash
       const body = {
@@ -32,22 +30,22 @@ const Admins = () => {
         full_name: values.full_name,
         email: values.email,
       };
-      
+
       // Agar parol kiritilgan bo'lsa, uni ham qo'shamiz
       if (values.password && values.password.trim() !== '') {
         body.password = values.password;
         body.password_confirm = values.password_confirm;
       }
-      
+
       await AdminProvider.updateAdmin(id, body)
         .then((res) => {
           console.log(res);
-          toast.success(t('messages.success.admin_updated'));
+          toast.success("Администратор отредактирован!");
           form.resetFields();
         })
         .catch((err) => {
           console.log(err);
-          toast.warning(t('messages.error.general'));
+          toast.warning("Ошибка");
         })
         .finally(() => {
           setIsOpen(false);
@@ -63,16 +61,16 @@ const Admins = () => {
         full_name: values.full_name,
         email: values.email,
       };
-      
       await AdminProvider.createAdmin(body)
         .then((res) => {
           console.log(res);
-          toast.success(t('messages.success.admin_created'));
+          toast.success("Администратор добавлен!");
           form.resetFields();
         })
         .catch((err) => {
-          console.log(err);
-          toast.warning(t('messages.error.general'));
+          err.response.data.error.map(err => (
+            toast.error(err)
+          ))
         })
         .finally(() => {
           setIsOpen(false);
@@ -81,13 +79,26 @@ const Admins = () => {
     }
   };
   const handleCancel = (errorInfo) => {
-    console.log(errorInfo);
+    console.log(errorInfo.errorFields);
+    errorInfo.errorFields.map((err) => (
+      toast.error(err.errors[0])
+    ))
     setIsOpen(false);
     setClientInfo({});
     setClientData({});
     setId(null);
     // Form ni to'liq tozalash
     form.resetFields();
+    // Email va password maydonlarini qo'lda tozalash
+    setTimeout(() => {
+      form.setFieldsValue({
+        username: '',
+        full_name: '',
+        email: '',
+        password: '',
+        password_confirm: '',
+      });
+    }, 50);
   };
 
   const closeModal = () => {
@@ -97,6 +108,16 @@ const Admins = () => {
     setId(null);
     // Form ni to'liq tozalash
     form.resetFields();
+    // Email va password maydonlarini qo'lda tozalash
+    setTimeout(() => {
+      form.setFieldsValue({
+        username: '',
+        full_name: '',
+        email: '',
+        password: '',
+        password_confirm: '',
+      });
+    }, 50);
   };
   useEffect(() => {
     if (id) {
@@ -104,14 +125,14 @@ const Admins = () => {
       form.resetFields();
       setClientInfo({});
       setClientData({});
-      
+
       // Keyin yangi ma'lumotlarni yuklash
       AdminProvider.getOneAdmin(id)
         .then((res) => {
           const data = res?.data;
           setClientInfo(data);
           setClientData(data);
-          
+
           // Form maydonlarini to'ldirish
           setTimeout(() => {
             form.setFieldsValue({
@@ -138,13 +159,15 @@ const Admins = () => {
   }, [id]);
 
   const handleChange = (e) => {
-    setFilters({ query: e.target?.value });
+    setFilters({ query: e.target?.value || '' });
   };
 
   const handleInput = (values) => {
-    setFilters(values);
+    setFilters({
+      query: values.query || ''
+    });
   };
-  
+
   const handleReset = (values) => {
     form2.resetFields();
     setFilters({ query: "" });
@@ -155,17 +178,25 @@ const Admins = () => {
     setId(null);
     setClientData({});
     setClientInfo({});
-    // Form ni tozalash
+    // Form ni to'liq tozalash
+    form.resetFields();
+    // Email va password maydonlarini qo'lda tozalash
     setTimeout(() => {
-      form.resetFields();
-    }, 100);
+      form.setFieldsValue({
+        username: '',
+        full_name: '',
+        email: '',
+        password: '',
+        password_confirm: '',
+      });
+    }, 50);
   };
 
   return (
     <>
       <div className="d-flex justify-content-between mb-3 gap-5">
         <div className="breadcrumb" style={{ width: "20%" }}>
-          <h1>{t('titles.admins')}</h1>
+          <h1>Администраторы</h1>
         </div>
         <Form
           name="basic"
@@ -179,12 +210,12 @@ const Admins = () => {
           <Row gutter={16}>
             <Col span={8}>
               <Form.Item name="query">
-                <Input placeholder={t('placeholders.search')} name="query" onChange={handleChange} />
+                <Input placeholder={"Поиск"} name="query" onChange={handleChange} />
               </Form.Item>
             </Col>
             <Col span={8} style={{ textAlign: 'right' }}>
-              <Button htmlType="button" onClick={handleReset} style={{ marginRight: 20 }}>{t('buttons.clear')}</Button>
-              <Button type="primary" htmlType="submit">{t('buttons.filter')}</Button>
+              <Button htmlType="button" onClick={handleReset} style={{ marginRight: 20 }}>Очистить</Button>
+              <Button type="primary" htmlType="submit">Фильтр</Button>
             </Col>
           </Row>
         </Form>
@@ -194,7 +225,7 @@ const Admins = () => {
             htmlType="button"
             onClick={openModal}
           >
-            {t('titles.add_admin')}
+            Добавить администратора
           </Button>
         </div>
       </div>
@@ -212,8 +243,8 @@ const Admins = () => {
         <FormModal
           title={
             clientInfo?.id
-              ? t('titles.edit_admin')
-              : t('titles.add_admin')
+              ? "Редактировать администратора"
+              : "Добавить администратора"
           }
           handleCancel={handleCancel}
           width={"500px"}
@@ -233,76 +264,79 @@ const Admins = () => {
             <Row gutter={16}>
               <Col span={12}>
                 <Form.Item
-                  label="Username"
+                  label="Имя пользователя"
                   name="username"
                   rules={[
                     {
                       required: true,
-                      message: t('validation.required'),
+                      message: "Пожалуйста, заполните поле",
                     },
                   ]}
                 >
-                  <Input placeholder="Username kiriting" />
+                  <Input placeholder="Введите имя пользователя" />
                 </Form.Item>
               </Col>
               <Col span={12}>
                 <Form.Item
-                  label={t('forms.full_name')}
+                  label={"Полное имя"}
                   name="full_name"
                   rules={[
                     {
                       required: true,
-                      message: t('validation.required'),
+                      message: "Пожалуйста, заполните поле",
                     },
                   ]}
                 >
-                  <Input placeholder={t('placeholders.full_name')} />
+                  <Input placeholder='Полное имя' />
                 </Form.Item>
               </Col>
               <Col span={12}>
                 <Form.Item
-                  label="Email"
+                  label="Электронная почта"
                   name="email"
                   rules={[
                     {
                       required: true,
-                      message: t('validation.required'),
+                      message: "Пожалуйста, заполните поле",
                     },
                     {
                       type: "email",
-                      message: "To'g'ri email formatini kiriting",
+                      message: "Пожалуйста, введите правильный формат адреса электронной почты.",
                     },
                   ]}
                 >
-                  <Input placeholder="Email kiriting" />
+                  <Input placeholder="Введите адрес электронной почты" autoComplete="off" />
                 </Form.Item>
               </Col>
               <Col span={12}>
                 <Form.Item
-                  label={id ? "Yangi parol (ixtiyoriy)" : "Parol"}
+                  label={id ? "Новый пароль" : "Пароль"}
                   name="password"
                   rules={[
                     ...(id ? [] : [{
                       required: true,
-                      message: "Iltimos parol kiriting",
+                      message: "Пожалуйста, введите пароль.",
                     }]),
                     {
                       min: 6,
-                      message: "Parol kamida 6 ta belgi bo'lishi kerak",
+                      message: "Пароль должен быть длиной не менее 6 символов.",
                     },
                   ]}
                 >
-                  <Input.Password placeholder={id ? "Yangi parol kiriting (bo'sh qoldiring)" : "Parol kiriting"} />
+                  <Input.Password 
+                    placeholder={id ? "Введите новый пароль (оставьте пустым)" : "Введите пароль"} 
+                    autoComplete="new-password"
+                  />
                 </Form.Item>
               </Col>
               <Col span={12}>
                 <Form.Item
-                  label={id ? "Yangi parolni tasdiqlash" : "Parolni tasdiqlash"}
+                  label={id ? "Подтвердите новый пароль" : "Подтвердите пароль"}
                   name="password_confirm"
                   rules={[
                     ...(id ? [] : [{
                       required: true,
-                      message: "Iltimos parolni tasdiqlang",
+                      message: "Пожалуйста, подтвердите пароль.",
                     }]),
                     ({ getFieldValue }) => ({
                       validator(_, value) {
@@ -314,17 +348,20 @@ const Admins = () => {
                           return Promise.resolve();
                         }
                         return Promise.reject(
-                          new Error("Parollar mos kelmaydi!")
+                          new Error("Пароли не совпадают!")
                         );
                       },
                     }),
                   ]}
                 >
-                  <Input.Password placeholder={id ? "Yangi parolni qayta kiriting" : "Parolni qayta kiriting"} />
+                  <Input.Password 
+                    placeholder={id ? "Введите новый пароль еще раз" : "Повторно введите пароль"} 
+                    autoComplete="new-password"
+                  />
                 </Form.Item>
               </Col>
             </Row>
-            
+
             <Form.Item
               style={{
                 display: "flex",
@@ -333,14 +370,14 @@ const Admins = () => {
               }}
             >
               <Button onClick={closeModal} style={{ marginRight: 20 }}>
-                Orqaga
+                Назад
               </Button>
               <Button
                 type="primary"
                 htmlType="submit"
                 loading={confirmLoading}
               >
-                {clientInfo?.id ? "Tahrirlash" : "Qo'shish"}
+                {clientInfo?.id ? "Редактировать" : "Добавлять"}
               </Button>
             </Form.Item>
           </Form>

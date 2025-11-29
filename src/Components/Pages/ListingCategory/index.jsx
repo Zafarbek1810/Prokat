@@ -6,10 +6,10 @@ import { toast } from "react-toastify";
 import TableCatListing from "./TableCatListing";
 import CategoryProvider from "../../../Data/CategoryProvider";
 import { PlusOutlined } from "@ant-design/icons";
-import { useTranslation } from "../../../hooks/useTranslation";
+import { useRouter } from "next/router";
 
 const Listingcategory = () => {
-  const { t } = useTranslation();
+  const router = useRouter();
   const [modalIsOpen, setIsOpen] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
   const [form] = Form.useForm();
@@ -36,7 +36,7 @@ const Listingcategory = () => {
       }
       try {
         await CategoryProvider.updateCategory(id, formData);
-          toast.success(t('messages.success.category_updated'));
+          toast.success("Категория отредактирована!");
         form.resetFields();
         setImgUrl("");
         if (fileInputRef.current) fileInputRef.current.value = "";
@@ -57,7 +57,7 @@ const Listingcategory = () => {
       formData.append("icon", imgUrl);
       try {
         await CategoryProvider.createCategory(formData);
-          toast.success(t('messages.success.category_created'));
+          toast.success("Категория добавлена!");
         form.resetFields();
         setImgUrl("");
         if (fileInputRef.current) fileInputRef.current.value = "";
@@ -98,34 +98,57 @@ const Listingcategory = () => {
   };
 
   useEffect(() => {
-    if (id) {
-      // Agar clientData to'liq bo'lsa, uni formga joylaymiz
-      if (clientData && Object.keys(clientData).length > 0) {
-        setClientInfo(clientData);
-        setTimeout(() => {
-          form.setFieldsValue({ ...clientData });
-        }, 100);
-        setImgUrl(""); // Fayl inputni bo'sh qoldiramiz
-        if (fileInputRef.current) fileInputRef.current.value = "";
-      } else {
-        CategoryProvider.getOneCategory(id)
-          .then((res) => {
-            const data = res?.data;
-            setClientInfo(data);
-            setTimeout(() => {
-              form.setFieldsValue({
-                ...data,
-              });
-            }, 100);
-          })
-          .catch((err) => {
-            console.error("Error fetching client data:", err);
-            if (err.response?.status == 401) {
-              router.push("/login");
-            }
-          });
-      }
-    } else {
+    if (id && modalIsOpen) {
+      // Fetch category with both languages to get name_uz and name_ru
+      // This ensures we always get both translations regardless of current language
+      const fetchCategoryData = async () => {
+        try {
+          // Get all categories with different languages
+          const [uzRes, ruRes] = await Promise.all([
+            CategoryProvider.getAllCategoryWithLanguage('uz'),
+            CategoryProvider.getAllCategoryWithLanguage('ru')
+          ]);
+          
+          const uzCategories = uzRes?.data?.results || uzRes?.data || [];
+          const uzCategory = uzCategories.find(cat => cat.id === id);
+          
+          const ruCategories = ruRes?.data?.results || ruRes?.data || [];
+          const ruCategory = ruCategories.find(cat => cat.id === id);
+          
+          const data = {
+            ...uzCategory,
+            name_uz: uzCategory?.name || '',
+            name_ru: ruCategory?.name || '',
+            icon: uzCategory?.icon || ruCategory?.icon || ''
+          };
+          
+          console.log('Fetched category data:', data);
+          console.log('uzCategory:', uzCategory);
+          console.log('ruCategory:', ruCategory);
+          
+          setClientInfo(data);
+          
+          // Wait a bit longer for modal to fully mount
+          setTimeout(() => {
+            form.setFieldsValue({
+              name_uz: data.name_uz,
+              name_ru: data.name_ru,
+            });
+            console.log('Form values set:', { name_uz: data.name_uz, name_ru: data.name_ru });
+          }, 300);
+          
+          setImgUrl(""); // Fayl inputni bo'sh qoldiramiz
+          if (fileInputRef.current) fileInputRef.current.value = "";
+        } catch (err) {
+          console.error("Error fetching client data:", err);
+          if (err.response?.status == 401) {
+            router.push("/login");
+          }
+        }
+      };
+      
+      fetchCategoryData();
+    } else if (!id && modalIsOpen) {
       // Yangi qo'shish holatida form ni tozalash
       setTimeout(() => {
         form.resetFields();
@@ -135,13 +158,13 @@ const Listingcategory = () => {
         if (fileInputRef.current) fileInputRef.current.value = "";
       }, 100);
     }
-  }, [id]);
+  }, [id, modalIsOpen]);
 
   return (
     <>
       <div className="d-flex justify-content-between mb-3">
         <div className="breadcrumb" style={{ width: "20%" }}>
-          <h1>{t('titles.categories')}</h1>
+          <h1>Категории</h1>
         </div>
         <div className="btns">
           <Button
@@ -160,7 +183,7 @@ const Listingcategory = () => {
               }, 100);
             }}
           >
-            {t('titles.add_category')}
+            Добавить категорию
           </Button>
         </div>
       </div>
@@ -175,7 +198,7 @@ const Listingcategory = () => {
 
       <ModalContextProvider modalIsOpen={modalIsOpen} setIsOpen={setIsOpen}>
         <FormModal
-          title={clientInfo && clientInfo.id ? "Kategoriya tahrirlash" : "Kategoriya qo'shish"}
+          title={clientInfo && clientInfo.id ? "Редактировать категорию" : "Добавить категорию"}
           handleCancel={handleCancel}
           width={"600px"}
         >
@@ -193,24 +216,24 @@ const Listingcategory = () => {
             <Row gutter={16}>
               <Col span={24}>
                 <Form.Item
-                  label="Kategoriya nomi uz"
+                  label="Название категории (уз)"
                   name="name_uz"
                   rules={[
                     {
                       required: true,
-                      message: "Iltimos, barcha maydonlarni to'ldiring!",
+                      message: "Пожалуйста, заполните все поля!",
                     },
                   ]}
                 >
                   <Input />
                 </Form.Item>
                 <Form.Item
-                  label="Kategoriya nomi ru"
+                  label="Название категории (рус)"
                   name="name_ru"
                   rules={[
                     {
                       required: true,
-                      message: "Iltimos, barcha maydonlarni to'ldiring!",
+                      message: "Пожалуйста, заполните все поля!",
                     },
                   ]}
                 >
@@ -233,14 +256,14 @@ const Listingcategory = () => {
                   }}
                 >
                   <Button onClick={closeModal} style={{ marginRight: 20 }}>
-                    Orqaga
+                    Назад
                   </Button>
                   <Button
                     type="primary"
                     htmlType="submit"
                     loading={confirmLoading}
                   >
-                    {clientInfo?.id ? "Tahrirlash" : "Davom etish"}
+                    {clientInfo?.id ? "Сохранить" : "Продолжить"}
                   </Button>
                 </Form.Item>
               </Col>

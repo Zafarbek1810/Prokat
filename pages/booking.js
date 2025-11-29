@@ -1,7 +1,7 @@
 import Head from "next/head";
 import WithAuthComponent from "../src/Hocs/PrivateRoute";
 import DashLayout from "../src/Components/DashLayout";
-import Listingcategory from "../src/Components/Pages/ListingCategory";
+import Booking from "../src/Components/Pages/Booking";
 
 export default function Home() {
   return (
@@ -13,7 +13,7 @@ export default function Home() {
       </Head>
       <WithAuthComponent>
         <DashLayout>
-          <Listingcategory />
+          <Booking />
         </DashLayout>
       </WithAuthComponent>
     </div>

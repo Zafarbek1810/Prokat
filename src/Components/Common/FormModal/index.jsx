@@ -14,7 +14,7 @@ const FormModal = ({ children, title, width }) => {
       footer={null}
       centered
     >
-      <p>{children}</p>
+      {children}
     </Modal>
   );
 };

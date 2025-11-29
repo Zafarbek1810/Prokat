@@ -19,6 +19,15 @@ client.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  // Add Accept-Language header if not already set in the request config
+  if (!config.headers['Accept-Language']) {
+    if (typeof window !== 'undefined') {
+      const language = localStorage.getItem('language') || 'ru';
+      config.headers['Accept-Language'] = language === 'uz' ? 'uz' : 'ru';
+    } else {
+      config.headers['Accept-Language'] = 'ru';
+    }
+  }
   return config;
 });
 

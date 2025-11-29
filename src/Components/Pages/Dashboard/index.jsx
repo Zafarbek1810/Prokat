@@ -5,12 +5,11 @@ import PieChart2 from "./PieChart2";
 import ClientsDash from "./ClientsDash";
 import AdminProvider from "../../../Data/AdminProvider";
 import BasicAreaChart from "./BasicAreaChart";
-import { useTranslation } from "../../../hooks/useTranslation";
 
 const DashboardWrapper = styled.div`
   .dashboard-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
     gap: 24px;
     margin-bottom: 24px;
   }
@@ -49,7 +48,7 @@ const DashboardWrapper = styled.div`
     }
 
     .card-content {
-      min-height: 350px;
+      // min-height: 350px;
     }
   }
 
@@ -124,7 +123,6 @@ const DashboardWrapper = styled.div`
 `;
 
 const Dashboard = () => {
-  const { t } = useTranslation();
   const [data, setData] = useState([]);
   
   useEffect(() => {
@@ -144,47 +142,47 @@ const Dashboard = () => {
       <div className="stats-grid">
         <div className="stat-card">
           <div className="stat-number">{data?.listings?.total || 0}</div>
-          <div className="stat-label">{t('dashboard.total_listings')}</div>
+          <div className="stat-label">ВСЕГО ОБЪЯВЛЕНИЙ</div>
         </div>
         <div className="stat-card">
           <div className="stat-number">{data?.listings?.new || 0}</div>
-          <div className="stat-label">{t('dashboard.new_listings')}</div>
+          <div className="stat-label">НОВЫЕ ОБЪЯВЛЕНИЯ</div>
         </div>
         <div className="stat-card">
           <div className="stat-number">{data?.listings?.active || 0}</div>
-          <div className="stat-label">{t('dashboard.active_listings')}</div>
+          <div className="stat-label">АКТИВНЫЕ ОБЪЯВЛЕНИЯ</div>
         </div>
         <div className="stat-card">
           <div className="stat-number">{data?.listings?.pending || 0}</div>
-          <div className="stat-label">{t('dashboard.pending_listings')}</div>
+          <div className="stat-label">ОЖИДАЮТ</div>
         </div>
       </div>
 
       {/* Charts Grid */}
       <div className="dashboard-grid">
         <div className="dashboard-card">
-          <div className="card-title">{t('dashboard.listings_count')}</div>
+          <div className="card-title">Количество объявлений</div>
           <div className="card-content">
             <PieChart />
           </div>
         </div>
 
         <div className="dashboard-card">
-          <div className="card-title">{t('dashboard.listings_by_category')}</div>
+          <div className="card-title">Количество объявлений по категориям</div>
           <div className="card-content">
             <PieChart2 />
           </div>
         </div>
 
         <div className="dashboard-card">
-          <div className="card-title">{t('dashboard.listings_by_category')}</div>
+          <div className="card-title">Количество объявлений по категориям</div>
           <div className="card-content">
             <BasicAreaChart />
           </div>
         </div>
 
         <div className="dashboard-card">
-          <div className="card-title">Kategoriyalar bo'yicha e'lonlar soni</div>
+          <div className="card-title">Количество объявлений по категориям</div>
           <div className="card-content">
             <ClientsDash />
           </div>

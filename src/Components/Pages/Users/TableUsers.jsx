@@ -15,7 +15,7 @@ import { toast } from "react-toastify";
 import moment from "moment";
 import { useRouter } from "next/router";
 import UserProvider from "../../../Data/UserProvider";
-import { useTranslation } from "../../../hooks/useTranslation";
+ 
 
 const TableUsers = ({
   modalIsOpen,
@@ -25,7 +25,6 @@ const TableUsers = ({
   filters,
   isBlocked
 }) => {
-  const { t } = useTranslation();
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [isOpen2, setIsOpen2] = useState(false);
@@ -47,32 +46,34 @@ const TableUsers = ({
       title: "№",
       key: "num",
       render: (text, item, i) => (
-        <div className="no_wrap">{i + 1 + 0 * 10}</div>
+        <div className="no_wrap">
+          {Math.min((page - 1) * pageSize + i + 1, total)}
+        </div>
       ),
     },
     {
-      title: t('table.full_name'),
+      title: "Полное имя",
       dataIndex: "full_name",
-      render: (full_name) => <Typography>{full_name == "" ? t('status.not_entered') : full_name}</Typography>,
+      render: (full_name) => <Typography>{full_name == "" ? "Не указано" : full_name}</Typography>,
     },
     {
-      title: t('table.phone_number'),
+      title: "Номер телефона",
       dataIndex: "phone_number",
       render: (phone_number) => <Typography>{phone_number}</Typography>,
     },
     {
-      title: t('table.status'),
+      title: "Статус",
       dataIndex: "is_blocked",
       render: (is_blocked, data) => {
         return (
           <Typography>
-            {data.is_blocked === true ? <span className="badge badge-danger">{t('status.blocked')}</span> : <span className="badge badge-success">{t('status.unblocked')}</span>}
+            {data.is_blocked === true ? <span className="badge badge-danger">Заблокирован</span> : <span className="badge badge-success">Не заблокирован</span>}
           </Typography>
         );
       },
     },
     {
-      title: t('table.created_date'),
+      title: "Дата создания",
       dataIndex: "date_joined",
       render: (date) => (
         <div style={{ minWidth: "150px" }}>
@@ -81,7 +82,7 @@ const TableUsers = ({
       ),
     },
     {
-      title: t('table.actions'),
+      title: "Действия",
       dataIndex: "id",
       render: (id, data) => (
         <div style={{ minWidth: "150px", display: "flex", gap: 8, justifyContent: "center" }}>
@@ -102,7 +103,7 @@ const TableUsers = ({
                 setUserInfo(data);
               }}
             >
-              <Popover content={"Blokdan ochish"}>
+              <Popover content={"Разблокировать"}>
                 <LockOpen style={{ fontSize: "16px" }} />
               </Popover>
             </Button>
@@ -123,7 +124,7 @@ const TableUsers = ({
                 setUserInfo(data);
               }}
             >
-              <Popover content={"Bloklash"}>
+              <Popover content={"Заблокировать"}>
                 <LockOutlined style={{ fontSize: "16px" }} />
               </Popover>
             </Button>
@@ -131,7 +132,7 @@ const TableUsers = ({
 
           <Popover content={(
             <div>
-              <p style={{ textAlign: 'center' }}>O'chirish</p>
+              <p style={{ textAlign: 'center' }}>Удалить</p>
             </div>
           )} title="">
            <Button
@@ -213,11 +214,11 @@ const TableUsers = ({
     UserProvider.deteleUser(id)
       .then((res) => {
         console.log(res);
-        toast.success(t('messages.success.user_deleted'));
+        toast.success("Пользователь удален!");
       })
       .catch((err) => {
         console.log(err);
-        toast.error("Xatolik!");
+        toast.error("Ошибка!");
       })
       .finally(() => {
         setConfirmLoading(false);
@@ -232,11 +233,11 @@ const TableUsers = ({
     };
     UserProvider.blockUser(id, body)
       .then((res) => {
-        toast.success(t('messages.success.user_blocked'));
+        toast.success("Пользователь заблокирован");
       })
       .catch((err) => {
         console.log(err);
-        toast.error("Xatolik!");
+        toast.error("Ошибка!");
       })
       .finally(() => {
         setConfirmLoading(false);
@@ -248,11 +249,11 @@ const TableUsers = ({
     setConfirmLoading(true);
     UserProvider.unblockUser(id)
       .then((res) => {
-        toast.success(t('messages.success.user_unblocked'));
+        toast.success("Пользователь разблокирован");
       })
       .catch((err) => {
         console.log(err);
-        toast.error("Xatolik!");
+        toast.error("Ошибка!");
       })
       .finally(() => {
         setConfirmLoading(false);
@@ -302,47 +303,47 @@ const TableUsers = ({
 
       <ModalContextProvider modalIsOpen={isOpen} setIsOpen={setIsOpen}>
         <FormModal
-          title={"Foydalanuvchi o'chirish"}
+          title={"Удалить пользователя"}
           handleCancel={() => setIsOpen(false)}
           width={"450px"}
         >
           <Typography style={{ marginBottom: 20 }}>
-            Haqiqatdan o'chirmoqchimisiz?
+            Вы действительно хотите удалить?
           </Typography>
           <div style={{ display: "flex", justifyContent: "end" }}>
             <Button
               onClick={() => setIsOpen(false)}
               style={{ marginRight: 20 }}
             >
-              Orqaga
+              Назад
             </Button>
             <Button
               type="primary"
               onClick={() => handleDeleteUser(userId)}
               loading={confirmLoading}
             >
-              Davom etish
+              Продолжить
             </Button>
           </div>
         </FormModal>
       </ModalContextProvider>
       <ModalContextProvider modalIsOpen={isOpen2} setIsOpen={setIsOpen2}>
         <FormModal
-          title={userInfo.is_blocked ? "Blokdan chiqarish" : "Bloklash"}
+          title={userInfo.is_blocked ? "Разблокировать" : "Заблокировать"}
           handleCancel={() => setIsOpen(false)}
           width={"450px"}
         >
           <Typography style={{ marginBottom: 20 }}>
             {userInfo.is_blocked
-              ? "Haqiqatdan blokdan chiqarmoqchimisiz?"
-              : "Haqiqatdan bloklamoqchimisiz?"}
+              ? "Вы действительно хотите разблокировать?"
+              : "Вы действительно хотите заблокировать?"}
           </Typography>
           <Typography style={{ marginBottom: 20 }}>
             {userInfo.is_blocked ? (
               <></>
             ) : (
               <Input
-                placeholder="Sababi"
+                placeholder="Причина"
                 onChange={(e) => setReason(e.target.value)}
               />
             )}
@@ -352,7 +353,7 @@ const TableUsers = ({
               onClick={() => setIsOpen2(false)}
               style={{ marginRight: 20 }}
             >
-              Orqaga
+              Назад
             </Button>
             <Button
               type="primary"
@@ -363,7 +364,7 @@ const TableUsers = ({
               }
               loading={confirmLoading}
             >
-              Davom etish
+              Продолжить
             </Button>
           </div>
         </FormModal>
@@ -371,7 +372,7 @@ const TableUsers = ({
 
       <ModalContextProvider modalIsOpen={clientOpen} setIsOpen={setClientOpen}>
         <FormModal
-          title={"Foydalanuvchi haqida"}
+          title={"Информация о пользователе"}
           handleCancel={() => setClientOpen(false)}
           width={"750px"}
         >
@@ -382,53 +383,53 @@ const TableUsers = ({
           ) : (
             <>
               <div style={{ marginBottom: 16 }}>
-                <Typography style={{ fontWeight: 600, marginBottom: 8 }}>Asosiy ma'lumotlar:</Typography>
+                <Typography style={{ fontWeight: 600, marginBottom: 8 }}>Основная информация:</Typography>
                 <Typography style={{ marginBottom: 8 }}>
                   <strong>ID:</strong> {userDetails?.id || userOpenInfo.id}
                 </Typography>
                 <Typography style={{ marginBottom: 8 }}>
-                  <strong>Telefon raqami:</strong> {userDetails?.phone_number || userOpenInfo.phone_number}
+                  <strong>Номер телефона:</strong> {userDetails?.phone_number || userOpenInfo.phone_number}
                 </Typography>
                 <Typography style={{ marginBottom: 8 }}>
-                  <strong>To'liq ism:</strong> {userDetails?.full_name || "Kiritilmagan"}
+                  <strong>Полное имя:</strong> {userDetails?.full_name || "Не указано"}
                 </Typography>
                 <Typography style={{ marginBottom: 8 }}>
-                  <strong>Email:</strong> {userDetails?.email || "Kiritilmagan"}
+                  <strong>Email:</strong> {userDetails?.email || "Не указано"}
                 </Typography>
                 <Typography style={{ marginBottom: 8 }}>
-                  <strong>Manzil:</strong> {userDetails?.address || "Kiritilmagan"}
-                </Typography>
-              </div>
-
-              <div style={{ marginBottom: 16 }}>
-                <Typography style={{ fontWeight: 600, marginBottom: 8 }}>Holat va faoliyat:</Typography>
-                <Typography style={{ marginBottom: 8 }}>
-                  <strong>Faol:</strong> {userDetails?.is_active ? "Ha" : "Yo'q"}
-                </Typography>
-                <Typography style={{ marginBottom: 8 }}>
-                  <strong>Bloklangan:</strong> {(userDetails?.is_blocked ?? userOpenInfo.is_blocked) ? "Ha" : "Yo'q"}
-                </Typography>
-                <Typography style={{ marginBottom: 8 }}>
-                  <strong>Reyting:</strong> {userDetails?.rating || 0}
-                </Typography>
-                <Typography style={{ marginBottom: 8 }}>
-                  <strong>Rol:</strong> {userDetails?.role || "user"}
-                </Typography>
-                <Typography style={{ marginBottom: 8 }}>
-                  <strong>Faol e'lonlar soni:</strong> {userDetails?.active_listings_count || 0}
+                  <strong>Адрес:</strong> {userDetails?.address || "Не указано"}
                 </Typography>
               </div>
 
               <div style={{ marginBottom: 16 }}>
-                <Typography style={{ fontWeight: 600, marginBottom: 8 }}>Tarix:</Typography>
+                <Typography style={{ fontWeight: 600, marginBottom: 8 }}>Статус и активность:</Typography>
                 <Typography style={{ marginBottom: 8 }}>
-                  <strong>Ro'yxatdan o'tgan sana:</strong> {userDetails?.date_joined ? moment(new Date(userDetails.date_joined)).format("DD.MM.YYYY HH:mm") : "Ma'lum emas"}
+                  <strong>Активен:</strong> {userDetails?.is_active ? "Да" : "Нет"}
+                </Typography>
+                <Typography style={{ marginBottom: 8 }}>
+                  <strong>Заблокирован:</strong> {(userDetails?.is_blocked ?? userOpenInfo.is_blocked) ? "Да" : "Нет"}
+                </Typography>
+                <Typography style={{ marginBottom: 8 }}>
+                  <strong>Рейтинг:</strong> {userDetails?.rating || 0}
+                </Typography>
+                <Typography style={{ marginBottom: 8 }}>
+                  <strong>Роль:</strong> {userDetails?.role || "user"}
+                </Typography>
+                <Typography style={{ marginBottom: 8 }}>
+                  <strong>Количество активных объявлений:</strong> {userDetails?.active_listings_count || 0}
+                </Typography>
+              </div>
+
+              <div style={{ marginBottom: 16 }}>
+                <Typography style={{ fontWeight: 600, marginBottom: 8 }}>История:</Typography>
+                <Typography style={{ marginBottom: 8 }}>
+                  <strong>Дата регистрации:</strong> {userDetails?.date_joined ? moment(new Date(userDetails.date_joined)).format("DD.MM.YYYY HH:mm") : "Неизвестно"}
                 </Typography>
               </div>
 
               {userDetails?.avatar && (
                 <div style={{ marginBottom: 16 }}>
-                  <Typography style={{ fontWeight: 600, marginBottom: 8 }}>Avatar:</Typography>
+                  <Typography style={{ fontWeight: 600, marginBottom: 8 }}>Аватар:</Typography>
                   <Image
                     src={userDetails.avatar}
                     alt="Avatar"
