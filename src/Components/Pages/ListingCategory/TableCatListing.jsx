@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import Table from "../../Common/Table/Table";
 import ClientProvider from "../../../Data/ClientProvider";
-import { Button, Image, Popover, Typography } from "antd";
-import { DeleteOutlined, EditOutlined } from "@mui/icons-material";
+import { Button, Image, Popover, Typography, InputNumber } from "antd";
+import { DeleteOutlined, EditOutlined, SaveOutlined } from "@mui/icons-material";
 import { ModalContextProvider } from "../../../Context/ModalContext";
 import FormModal from "../../Common/FormModal";
 import { toast } from "react-toastify";
@@ -25,6 +25,63 @@ const TableCatListing = ({
   const [categoryId, setCategoryId] = useState(null);
   const [clientOpen, setClientOpen] = useState(false);
   const [clientOpenInfo, setClientOpenInfo] = useState({});
+  const [updatingOrder, setUpdatingOrder] = useState({});
+  const [orderValues, setOrderValues] = useState({});
+  const [editingOrder, setEditingOrder] = useState({});
+
+  const handleOrderSave = async (id, newOrder) => {
+    if (newOrder === null || newOrder === undefined) {
+      return;
+    }
+    
+    // Get original order value
+    const originalOrder = data.find(item => item.id === id)?.order || 0;
+    
+    // If value hasn't changed, just close editing
+    if (newOrder === originalOrder) {
+      setEditingOrder(prev => ({ ...prev, [id]: false }));
+      return;
+    }
+    
+    setUpdatingOrder(prev => ({ ...prev, [id]: true }));
+    
+    try {
+      await CategoryProvider.updateCategoryOrder(id, { order: newOrder });
+      toast.success("Порядок категории обновлен!");
+      // Refresh data
+      const { searchText } = filters;
+      const params = new URLSearchParams();
+      if (searchText) params.append("searchText", searchText);
+      const res = await CategoryProvider.getAllCategory();
+      const categories = res.data.results || res.data;
+      setData(categories);
+      // Update local state and close editing
+      setOrderValues(prev => ({ ...prev, [id]: newOrder }));
+      setEditingOrder(prev => ({ ...prev, [id]: false }));
+    } catch (err) {
+      console.error("Error updating category order:", err);
+      toast.error(err.response?.data?.error?.[0] || "Ошибка при обновлении порядка!");
+      // Revert to original value on error
+      setOrderValues(prev => ({ ...prev, [id]: originalOrder }));
+    } finally {
+      setUpdatingOrder(prev => ({ ...prev, [id]: false }));
+    }
+  };
+
+  const handleOrderInputChange = (id, value) => {
+    setOrderValues(prev => ({ ...prev, [id]: value }));
+  };
+
+  const handleEditClick = (id, currentOrder) => {
+    setEditingOrder(prev => ({ ...prev, [id]: true }));
+    setOrderValues(prev => ({ ...prev, [id]: currentOrder }));
+  };
+
+  const handleCancelEdit = (id, originalOrder) => {
+    setEditingOrder(prev => ({ ...prev, [id]: false }));
+    setOrderValues(prev => ({ ...prev, [id]: originalOrder }));
+  };
+
   const columns = [
     {
       title: "№",
@@ -65,6 +122,51 @@ const TableCatListing = ({
           </Typography>
         </div>
       ),
+    },
+    {
+      title: "Порядок",
+      dataIndex: "order",
+      render: (order, record) => {
+        const originalOrder = order || 0;
+        const isEditing = editingOrder[record.id] || false;
+        const currentOrder = orderValues[record.id] !== undefined 
+          ? orderValues[record.id] 
+          : originalOrder;
+        
+        return (
+          <div 
+            style={{ minWidth: "200px",display: "flex", justifyContent: "center", alignItems: "center" }}
+            onClick={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: "flex", gap: "4px", width: "70%" }}>
+              <InputNumber
+                min={1}
+                value={currentOrder}
+                onChange={(value) => handleOrderInputChange(record.id, value)}
+                style={{ flex: 1 }}
+                disabled={!isEditing || updatingOrder[record.id]}
+              />
+              {isEditing ? (
+                <Button
+                  type="primary"
+                  icon={<SaveOutlined />}
+                  onClick={() => handleOrderSave(record.id, currentOrder)}
+                  loading={updatingOrder[record.id]}
+                  size="small"
+                />
+              ) : (
+                <Button
+                  type="default"
+                  icon={<EditOutlined />}
+                  onClick={() => handleEditClick(record.id, originalOrder)}
+                  size="small"
+                />
+              )}
+            </div>
+          </div>
+        );
+      },
     },
     {
       title: "Действия",
@@ -134,7 +236,16 @@ const TableCatListing = ({
     CategoryProvider.getAllCategory(0, 10, params.toString())
       .then((res) => {
         console.log(res.data);
-        setData(res.data.results);
+        const categories = res.data.results || res.data;
+        setData(categories);
+        // Initialize order values from fetched data
+        const initialOrderValues = {};
+        categories.forEach(cat => {
+          if (cat.order !== undefined) {
+            initialOrderValues[cat.id] = cat.order;
+          }
+        });
+        setOrderValues(initialOrderValues);
       })
       .catch((err) => {
         console.log(err);

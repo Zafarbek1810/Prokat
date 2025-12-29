@@ -31,6 +31,7 @@ const Listingcategory = () => {
       const formData = new FormData();
       formData.append("name_uz", values.name_uz);
       formData.append("name_ru", values.name_ru);
+      formData.append("name_en", values.name_en);
       if (imgUrl) {
         formData.append("icon", imgUrl);
       }
@@ -54,6 +55,7 @@ const Listingcategory = () => {
       const formData = new FormData();
       formData.append("name_uz", values.name_uz);
       formData.append("name_ru", values.name_ru);
+      formData.append("name_en", values.name_en);
       formData.append("icon", imgUrl);
       try {
         await CategoryProvider.createCategory(formData);
@@ -104,9 +106,10 @@ const Listingcategory = () => {
       const fetchCategoryData = async () => {
         try {
           // Get all categories with different languages
-          const [uzRes, ruRes] = await Promise.all([
+          const [uzRes, ruRes, enRes] = await Promise.all([
             CategoryProvider.getAllCategoryWithLanguage('uz'),
-            CategoryProvider.getAllCategoryWithLanguage('ru')
+            CategoryProvider.getAllCategoryWithLanguage('ru'),
+            CategoryProvider.getAllCategoryWithLanguage('en')
           ]);
           
           const uzCategories = uzRes?.data?.results || uzRes?.data || [];
@@ -115,10 +118,14 @@ const Listingcategory = () => {
           const ruCategories = ruRes?.data?.results || ruRes?.data || [];
           const ruCategory = ruCategories.find(cat => cat.id === id);
           
+          const enCategories = enRes?.data?.results || enRes?.data || [];
+          const enCategory = enCategories.find(cat => cat.id === id);
+          
           const data = {
             ...uzCategory,
             name_uz: uzCategory?.name || '',
             name_ru: ruCategory?.name || '',
+            name_en: enCategory?.name || '',
             icon: uzCategory?.icon || ruCategory?.icon || ''
           };
           
@@ -133,8 +140,9 @@ const Listingcategory = () => {
             form.setFieldsValue({
               name_uz: data.name_uz,
               name_ru: data.name_ru,
+              name_en: data.name_en,
             });
-            console.log('Form values set:', { name_uz: data.name_uz, name_ru: data.name_ru });
+            console.log('Form values set:', { name_uz: data.name_uz, name_ru: data.name_ru, name_en: data.name_en });
           }, 300);
           
           setImgUrl(""); // Fayl inputni bo'sh qoldiramiz
@@ -218,6 +226,18 @@ const Listingcategory = () => {
                 <Form.Item
                   label="Название категории (уз)"
                   name="name_uz"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Пожалуйста, заполните все поля!",
+                    },
+                  ]}
+                >
+                  <Input />
+                </Form.Item>
+                <Form.Item
+                  label="Название категории (en)"
+                  name="name_en"
                   rules={[
                     {
                       required: true,

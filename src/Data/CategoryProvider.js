@@ -53,6 +53,9 @@ export default class CategoryProvider {
     static async updateCategory(id, body) {
         return await client.put(`/api/admin/categories/${id}/`, body);
     }
+    static async updateCategoryOrder(id, body) {
+        return await client.patch(`/api/admin/categories/${id}/`, body);
+    }
 
 
 }

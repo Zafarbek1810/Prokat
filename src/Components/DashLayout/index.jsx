@@ -228,6 +228,11 @@ const DashLayout = ({ children }) => {
       path: "/chat",
       icon: <i className="i-Speach-Bubble-3 text-20 mr-2 text-muted"></i>,
     },
+    {
+      name: 'Обновление версии',
+      path: "/version",
+      icon: <i className="i-Refresh text-20 mr-2 text-muted"></i>,
+    },
   ];
 
   return (
