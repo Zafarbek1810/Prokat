@@ -1,12 +1,15 @@
 import React, { useEffect, useState, useRef } from "react";
 import { ModalContextProvider } from "../../../Context/ModalContext";
 import FormModal from "../../Common/FormModal";
-import { Button, Col, Form, Input, Row, Upload } from "antd";
+import { Button, Col, Form, Input, Row, Tabs, Select } from "antd";
 import { toast } from "react-toastify";
 import TableCatListing from "./TableCatListing";
 import CategoryProvider from "../../../Data/CategoryProvider";
 import { PlusOutlined } from "@ant-design/icons";
 import { useRouter } from "next/router";
+
+const { TabPane } = Tabs;
+const { Option } = Select;
 
 const Listingcategory = () => {
   const router = useRouter();
@@ -23,6 +26,26 @@ const Listingcategory = () => {
   });
   const fileInputRef = useRef(null);
 
+  // New state for tabs and parent categories
+  const [activeTab, setActiveTab] = useState("main");
+  const [mainCategories, setMainCategories] = useState([]);
+  const [selectedParent, setSelectedParent] = useState(null);
+
+  // Fetch main categories for parent dropdown
+  const fetchMainCategories = async () => {
+    try {
+      const res = await CategoryProvider.getMainCategories();
+      const categories = res.data.results || res.data || [];
+      setMainCategories(categories);
+    } catch (err) {
+      console.error("Error fetching main categories:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchMainCategories();
+  }, [modalIsOpen]);
+
   const handleAddCategory = async (values) => {
     setConfirmLoading(true);
 
@@ -31,18 +54,23 @@ const Listingcategory = () => {
       const formData = new FormData();
       formData.append("name_uz", values.name_uz);
       formData.append("name_ru", values.name_ru);
-      formData.append("name_en", values.name_en);
+      formData.append("name_en", values.name_en || "");
       if (imgUrl) {
         formData.append("icon", imgUrl);
       }
+      // Include parent for subcategories
+      if (selectedParent) {
+        formData.append("parent", selectedParent);
+      }
       try {
         await CategoryProvider.updateCategory(id, formData);
-          toast.success("Категория отредактирована!");
+        toast.success("Категория отредактирована!");
         form.resetFields();
         setImgUrl("");
+        setSelectedParent(null);
         if (fileInputRef.current) fileInputRef.current.value = "";
       } catch (err) {
-        toast.warning(err.response.data.error[0]);
+        toast.warning(err.response?.data?.error?.[0] || "Ошибка при редактировании");
       } finally {
         setIsOpen(false);
         setConfirmLoading(false);
@@ -51,21 +79,28 @@ const Listingcategory = () => {
         setId(null);
       }
     } else {
-      // CREATE (sizda bor)
+      // CREATE
       const formData = new FormData();
       formData.append("name_uz", values.name_uz);
       formData.append("name_ru", values.name_ru);
-      formData.append("name_en", values.name_en);
-      formData.append("icon", imgUrl);
+      formData.append("name_en", values.name_en || "");
+      if (imgUrl) {
+        formData.append("icon", imgUrl);
+      }
+      // Add parent if creating subcategory
+      if (activeTab === "sub" && selectedParent) {
+        formData.append("parent", selectedParent);
+      }
       try {
         await CategoryProvider.createCategory(formData);
-          toast.success("Категория добавлена!");
+        const categoryType = activeTab === "sub" ? "Подкатегория" : "Категория";
+        toast.success(`${categoryType} добавлена!`);
         form.resetFields();
         setImgUrl("");
+        setSelectedParent(null);
         if (fileInputRef.current) fileInputRef.current.value = "";
       } catch (err) {
-        toast.warning(err.response.data.error[0]);
-
+        toast.warning(err.response?.data?.error?.[0] || "Ошибка при создании");
       } finally {
         setIsOpen(false);
         setConfirmLoading(false);
@@ -79,8 +114,8 @@ const Listingcategory = () => {
     setClientData({});
     setId(null);
     setImgUrl("");
+    setSelectedParent(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
-    // Form ni to'liq tozalash
     setTimeout(() => {
       form.resetFields();
     }, 100);
@@ -92,8 +127,8 @@ const Listingcategory = () => {
     setClientData({});
     setId(null);
     setImgUrl("");
+    setSelectedParent(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
-    // Form ni to'liq tozalash
     setTimeout(() => {
       form.resetFields();
     }, 100);
@@ -102,7 +137,6 @@ const Listingcategory = () => {
   useEffect(() => {
     if (id && modalIsOpen) {
       // Fetch category with both languages to get name_uz and name_ru
-      // This ensures we always get both translations regardless of current language
       const fetchCategoryData = async () => {
         try {
           // Get all categories with different languages
@@ -111,30 +145,35 @@ const Listingcategory = () => {
             CategoryProvider.getAllCategoryWithLanguage('ru'),
             CategoryProvider.getAllCategoryWithLanguage('en')
           ]);
-          
+
           const uzCategories = uzRes?.data?.results || uzRes?.data || [];
           const uzCategory = uzCategories.find(cat => cat.id === id);
-          
+
           const ruCategories = ruRes?.data?.results || ruRes?.data || [];
           const ruCategory = ruCategories.find(cat => cat.id === id);
-          
+
           const enCategories = enRes?.data?.results || enRes?.data || [];
           const enCategory = enCategories.find(cat => cat.id === id);
-          
+
           const data = {
             ...uzCategory,
             name_uz: uzCategory?.name || '',
             name_ru: ruCategory?.name || '',
             name_en: enCategory?.name || '',
-            icon: uzCategory?.icon || ruCategory?.icon || ''
+            icon: uzCategory?.icon || ruCategory?.icon || '',
+            parent_id: uzCategory?.parent_id || null,
+            is_main_category: uzCategory?.is_main_category
           };
-          
+
           console.log('Fetched category data:', data);
-          console.log('uzCategory:', uzCategory);
-          console.log('ruCategory:', ruCategory);
-          
+
           setClientInfo(data);
-          
+
+          // Set parent for subcategories
+          if (data.parent_id) {
+            setSelectedParent(data.parent_id);
+          }
+
           // Wait a bit longer for modal to fully mount
           setTimeout(() => {
             form.setFieldsValue({
@@ -142,10 +181,9 @@ const Listingcategory = () => {
               name_ru: data.name_ru,
               name_en: data.name_en,
             });
-            console.log('Form values set:', { name_uz: data.name_uz, name_ru: data.name_ru, name_en: data.name_en });
           }, 300);
-          
-          setImgUrl(""); // Fayl inputni bo'sh qoldiramiz
+
+          setImgUrl("");
           if (fileInputRef.current) fileInputRef.current.value = "";
         } catch (err) {
           console.error("Error fetching client data:", err);
@@ -154,24 +192,38 @@ const Listingcategory = () => {
           }
         }
       };
-      
+
       fetchCategoryData();
     } else if (!id && modalIsOpen) {
-      // Yangi qo'shish holatida form ni tozalash
+      // New category - reset form
       setTimeout(() => {
         form.resetFields();
         setClientInfo({});
         setClientData({});
         setImgUrl("");
+        setSelectedParent(null);
         if (fileInputRef.current) fileInputRef.current.value = "";
       }, 100);
     }
   }, [id, modalIsOpen]);
 
+  const getModalTitle = () => {
+    if (clientInfo?.id) {
+      return clientInfo.is_main_category === false
+        ? "Редактировать подкатегорию"
+        : "Редактировать категорию";
+    }
+    return activeTab === "sub" ? "Добавить подкатегорию" : "Добавить категорию";
+  };
+
+  const getButtonText = () => {
+    return activeTab === "sub" ? "Добавить подкатегорию" : "Добавить категорию";
+  };
+
   return (
     <>
       <div className="d-flex justify-content-between mb-3">
-        <div className="breadcrumb" style={{ width: "20%" }}>
+        <div className="breadcrumb" style={{ width: "40%" }}>
           <h1>Категории</h1>
         </div>
         <div className="btns">
@@ -184,29 +236,36 @@ const Listingcategory = () => {
               setClientData({});
               setClientInfo({});
               setImgUrl("");
+              setSelectedParent(null);
               if (fileInputRef.current) fileInputRef.current.value = "";
-              // Form ni to'liq tozalash
               setTimeout(() => {
                 form.resetFields();
               }, 100);
             }}
           >
-            Добавить категорию
+            {getButtonText()}
           </Button>
         </div>
       </div>
       <div className="separator-breadcrumb border-top"></div>
+
+      <Tabs activeKey={activeTab} onChange={setActiveTab} style={{ marginBottom: 16 }}>
+        <TabPane tab="Основные категории" key="main" />
+        <TabPane tab="Подкатегории" key="sub" />
+      </Tabs>
+
       <TableCatListing
         modalIsOpen={modalIsOpen}
         setModalIsOpen={setIsOpen}
         setClientData={setClientData}
         setId={setId}
         filters={filters}
+        categoryType={activeTab}
       />
 
       <ModalContextProvider modalIsOpen={modalIsOpen} setIsOpen={setIsOpen}>
         <FormModal
-          title={clientInfo && clientInfo.id ? "Редактировать категорию" : "Добавить категорию"}
+          title={getModalTitle()}
           handleCancel={handleCancel}
           width={"600px"}
         >
@@ -223,56 +282,75 @@ const Listingcategory = () => {
           >
             <Row gutter={16}>
               <Col span={24}>
+                {/* Parent category selection for subcategories */}
+                {(activeTab === "sub" || clientInfo?.parent_id) && (
+                  <Form.Item
+                    label="Основная категория"
+                    required={activeTab === "sub"}
+                  >
+                    <Select
+                      placeholder="Выберите основную категорию"
+                      value={selectedParent}
+                      onChange={setSelectedParent}
+                      style={{ width: "100%" }}
+                    >
+                      {mainCategories.map((cat) => (
+                        <Option key={cat.id} value={cat.id}>
+                          {cat.name}
+                        </Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
+                )}
+
                 <Form.Item
-                  label="Название категории (уз)"
+                  label={activeTab === "sub" ? "Название подкатегории (уз)" : "Название категории (уз)"}
                   name="name_uz"
                   rules={[
                     {
                       required: true,
-                      message: "Пожалуйста, заполните все поля!",
+                      message: "Пожалуйста, заполните это поле!",
                     },
                   ]}
                 >
                   <Input />
                 </Form.Item>
                 <Form.Item
-                  label="Название категории (en)"
-                  name="name_en"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Пожалуйста, заполните все поля!",
-                    },
-                  ]}
-                >
-                  <Input />
-                </Form.Item>
-                <Form.Item
-                  label="Название категории (рус)"
+                  label={activeTab === "sub" ? "Название подкатегории (рус)" : "Название категории (рус)"}
                   name="name_ru"
                   rules={[
                     {
                       required: true,
-                      message: "Пожалуйста, заполните все поля!",
+                      message: "Пожалуйста, заполните это поле!",
                     },
                   ]}
                 >
                   <Input />
                 </Form.Item>
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={(e) => setImgUrl(e.target.files[0])}
-                />
-                {clientInfo?.icon && !imgUrl && (
-                  <img src={clientInfo.icon} alt="icon" width={50} style={{ marginTop: 10 }} />
-                )}
+                <Form.Item
+                  label={activeTab === "sub" ? "Название подкатегории (en)" : "Название категории (en)"}
+                  name="name_en"
+                >
+                  <Input />
+                </Form.Item>
+
+                <div style={{ marginBottom: 16 }}>
+                  <label style={{ display: "block", marginBottom: 8 }}>Иконка</label>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={(e) => setImgUrl(e.target.files[0])}
+                  />
+                  {clientInfo?.icon && !imgUrl && (
+                    <img src={clientInfo.icon} alt="icon" width={50} style={{ marginTop: 10 }} />
+                  )}
+                </div>
 
                 <Form.Item
                   style={{
                     display: "flex",
                     justifyContent: "end",
-                    marginTop: 55,
+                    marginTop: 24,
                   }}
                 >
                   <Button onClick={closeModal} style={{ marginRight: 20 }}>
@@ -282,6 +360,7 @@ const Listingcategory = () => {
                     type="primary"
                     htmlType="submit"
                     loading={confirmLoading}
+                    disabled={activeTab === "sub" && !selectedParent && !clientInfo?.id}
                   >
                     {clientInfo?.id ? "Сохранить" : "Продолжить"}
                   </Button>

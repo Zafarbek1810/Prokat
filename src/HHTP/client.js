@@ -3,8 +3,9 @@ import Message from "../utils/Message";
 import Router from "next/router"; // useRouter o'rniga Router
 
 // export const API_URL = "http://82.146.47.190:8001";
-export const API_URL = "https://4rent.uz";
+// export const API_URL = "https://4rent.uz";
 // export const API_URL = "http://45.138.158.158:9595";
+export const API_URL = "https://4rent.isgood.host";
 
 const client = axios.create({
   withCredentials: false,

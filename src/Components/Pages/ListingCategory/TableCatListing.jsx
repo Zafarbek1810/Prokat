@@ -16,6 +16,7 @@ const TableCatListing = ({
   setClientData,
   setId,
   filters,
+  categoryType = "main", // "main" or "sub"
 }) => {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
@@ -44,16 +45,17 @@ const TableCatListing = ({
     }
     
     setUpdatingOrder(prev => ({ ...prev, [id]: true }));
-    
+
     try {
       await CategoryProvider.updateCategoryOrder(id, { order: newOrder });
-      toast.success("Порядок категории обновлен!");
-      // Refresh data
-      const { searchText } = filters;
-      const params = new URLSearchParams();
-      if (searchText) params.append("searchText", searchText);
-      const res = await CategoryProvider.getAllCategory();
-      const categories = res.data.results || res.data;
+      const typeText = categoryType === "sub" ? "подкатегории" : "категории";
+      toast.success(`Порядок ${typeText} обновлен!`);
+      // Refresh data based on category type
+      const fetchCategories = categoryType === "main"
+        ? CategoryProvider.getMainCategories()
+        : CategoryProvider.getSubcategories();
+      const res = await fetchCategories;
+      const categories = res.data.results || res.data || [];
       setData(categories);
       // Update local state and close editing
       setOrderValues(prev => ({ ...prev, [id]: newOrder }));
@@ -90,10 +92,6 @@ const TableCatListing = ({
         <div className="no_wrap">{i + 1 + 0 * 10}</div>
       ),
     },
-    // {
-    //   title: "ID",
-    //   dataIndex: "id",
-    // },
     {
       title: "Иконка",
       dataIndex: "icon",
@@ -101,8 +99,20 @@ const TableCatListing = ({
         <img src={icon} alt="" style={{ width: "20px" }} />
       ),
     },
+    // Show parent category for subcategories
+    ...(categoryType === "sub" ? [{
+      title: "Основная категория",
+      dataIndex: "parent_name",
+      render: (parent_name) => (
+        <div style={{ minWidth: "120px" }}>
+          <Typography style={{ color: "#666" }}>
+            {parent_name || "-"}
+          </Typography>
+        </div>
+      ),
+    }] : []),
     {
-      title: "Название",
+      title: categoryType === "sub" ? "Подкатегория" : "Название",
       dataIndex: "id",
       render: (title, data) => (
         <div style={{ minWidth: "150px" }}>
@@ -116,13 +126,25 @@ const TableCatListing = ({
       title: "Активные объявления",
       dataIndex: "active_count",
       render: (active_count) => (
-        <div style={{ minWidth: "150px" }}>
+        <div style={{ minWidth: "100px" }}>
           <Typography>
-            {active_count}
+            {active_count || 0}
           </Typography>
         </div>
       ),
     },
+    // Show subcategories count for main categories
+    ...(categoryType === "main" ? [{
+      title: "Подкатегорий",
+      dataIndex: "subcategories_count",
+      render: (count) => (
+        <div style={{ minWidth: "100px" }}>
+          <Typography>
+            {count || 0}
+          </Typography>
+        </div>
+      ),
+    }] : []),
     {
       title: "Порядок",
       dataIndex: "order",
@@ -229,14 +251,17 @@ const TableCatListing = ({
   useEffect(() => {
     const { searchText } = filters;
 
-    const params = new URLSearchParams();
-    if (searchText) params.append("searchText", searchText);
-
     setLoading(true);
-    CategoryProvider.getAllCategory(0, 10, params.toString())
+
+    // Fetch based on category type
+    const fetchCategories = categoryType === "main"
+      ? CategoryProvider.getMainCategories()
+      : CategoryProvider.getSubcategories();
+
+    fetchCategories
       .then((res) => {
-        console.log(res.data);
-        const categories = res.data.results || res.data;
+        console.log(`Fetched ${categoryType} categories:`, res.data);
+        const categories = res.data.results || res.data || [];
         setData(categories);
         // Initialize order values from fetched data
         const initialOrderValues = {};
@@ -256,18 +281,20 @@ const TableCatListing = ({
       .finally(() => {
         setLoading(false);
       });
-  }, [modalIsOpen, isOpen, filters]);
+  }, [modalIsOpen, isOpen, filters, categoryType]);
 
   const handleDeleteClients = (id) => {
     setConfirmLoading(true);
     CategoryProvider.deleteCategory(id)
       .then((res) => {
         console.log(res);
-        toast.success("Kategoriya o'chirildi!");
+        const typeText = categoryType === "sub" ? "Подкатегория" : "Категория";
+        toast.success(`${typeText} удалена!`);
       })
       .catch((err) => {
         console.log(err);
-        toast.error("Xatolik!");
+        const errorMsg = err.response?.data?.error || "Ошибка при удалении!";
+        toast.error(errorMsg);
       })
       .finally(() => {
         setConfirmLoading(false);
@@ -297,7 +324,7 @@ const TableCatListing = ({
 
       <ModalContextProvider modalIsOpen={isOpen} setIsOpen={setIsOpen}>
         <FormModal
-          title={"Удалить категорию"}
+          title={categoryType === "sub" ? "Удалить подкатегорию" : "Удалить категорию"}
           handleCancel={() => setIsOpen(false)}
           width={"450px"}
         >
@@ -313,10 +340,11 @@ const TableCatListing = ({
             </Button>
             <Button
               type="primary"
+              danger
               onClick={() => handleDeleteClients(categoryId)}
               loading={confirmLoading}
             >
-              Продолжить
+              Удалить
             </Button>
           </div>
         </FormModal>
@@ -324,12 +352,17 @@ const TableCatListing = ({
 
       <ModalContextProvider modalIsOpen={clientOpen} setIsOpen={setClientOpen}>
         <FormModal
-          title={"Информация о категории"}
+          title={categoryType === "sub" ? "Информация о подкатегории" : "Информация о категории"}
           handleCancel={() => setClientOpen(false)}
           width={"750px"}
         >
+          {categoryType === "sub" && clientOpenInfo.parent_name && (
+            <Typography style={{ marginBottom: 10, color: "#666" }}>
+              Основная категория: {clientOpenInfo.parent_name}
+            </Typography>
+          )}
           <Typography style={{ marginBottom: 20 }}>
-            Название - {clientOpenInfo.name}
+            Название: {clientOpenInfo.name}
           </Typography>
           <Typography style={{ marginBottom: 20 }}>
             Иконка <br />

@@ -2,18 +2,35 @@ import client from "../HHTP/client";
 
 export default class CategoryProvider {
 
-    // client
-    static async createCategory(body) {
-        return await client.post("/api/admin/categories/", body);
-    }
+    // Get all categories (both main and sub)
     static async getAllCategory() {
         return await client.get(`/api/admin/categories/`);
     }
-    static async getAllCategoryWithLanguage(language = 'ru') {
-        // Get all categories with specific language
-        console.log(`Getting all categories with language: ${language}`);
+
+    // Get only main categories
+    static async getMainCategories() {
+        return await client.get(`/api/admin/categories/?type=main`);
+    }
+
+    // Get only subcategories
+    static async getSubcategories() {
+        return await client.get(`/api/admin/categories/?type=sub`);
+    }
+
+    // Get subcategories for a specific main category
+    static async getSubcategoriesByParent(parentId) {
+        return await client.get(`/api/admin/categories/?parent_id=${parentId}`);
+    }
+
+    // Get all categories with specific language
+    static async getAllCategoryWithLanguage(language = 'ru', type = null) {
+        console.log(`Getting categories with language: ${language}, type: ${type}`);
         try {
-            const response = await client.get(`/api/admin/categories/`, {
+            let url = `/api/admin/categories/`;
+            if (type) {
+                url += `?type=${type}`;
+            }
+            const response = await client.get(url, {
                 headers: {
                     'Accept-Language': language
                 }
@@ -21,22 +38,30 @@ export default class CategoryProvider {
             console.log(`Success getting categories with ${language}, count:`, response?.data?.results?.length || response?.data?.length);
             return response;
         } catch (error) {
-            console.error(`Error getting all categories with language ${language}:`, error);
+            console.error(`Error getting categories with language ${language}:`, error);
             throw error;
         }
     }
+
+    // Create category (main or subcategory based on parent field)
+    static async createCategory(body) {
+        return await client.post("/api/admin/categories/", body);
+    }
+
+    // Delete category
     static async deleteCategory(id) {
         return await client.delete(`/api/admin/categories/${id}/`);
     }
+
+    // Get one category
     static async getOneCategory(id) {
-        return await client.get(`/api/admin/categories/get/${id}`);
+        return await client.get(`/api/admin/categories/${id}/`);
     }
+
+    // Get category with specific language
     static async getOneCategoryWithLanguage(id, language = 'ru') {
-        // Get category with specific language to extract name_uz or name_ru
-        // For GET requests with custom headers, pass config as second parameter
-        const url = `/api/admin/categories/get/${id}`;
+        const url = `/api/admin/categories/${id}/`;
         console.log(`Fetching category ${id} with language: ${language}`);
-        console.log(`URL: ${url}`);
         try {
             const response = await client.get(url, {
                 headers: {
@@ -50,12 +75,14 @@ export default class CategoryProvider {
             throw error;
         }
     }
+
+    // Update category
     static async updateCategory(id, body) {
         return await client.put(`/api/admin/categories/${id}/`, body);
     }
+
+    // Partial update (e.g., order)
     static async updateCategoryOrder(id, body) {
         return await client.patch(`/api/admin/categories/${id}/`, body);
     }
-
-
 }
