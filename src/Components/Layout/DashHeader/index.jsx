@@ -103,7 +103,7 @@ const DashboardHeader = ({ RefObj, setIsOpen, setOpen, onMenuToggle }) => {
         <div className="wrap">
           <div className="left">
             <MyLink to={"/"} className="logo">
-              <img src="/images/logo1.png" alt="Logo" />
+              <img src="/icons/logo.svg" alt="Logo" />
             </MyLink>
             <div className="menu-toggle" onClick={handleOpen}>
               <div></div>
